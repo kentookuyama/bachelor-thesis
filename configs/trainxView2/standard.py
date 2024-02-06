@@ -6,10 +6,8 @@ data = dict(
     train=dict(
         type='PreCachedXview2BuildingLoader',
         params=dict(
-            #image_dir=('./xview2/update/train/images', './xview2/update/tier3/images'),
-            image_dir=('/mnt/d/Downloads/xview2/train/images', '/mnt/d/Downloads/xview2/tier3/images'),
-            target_dir=('/mnt/d/Downloads/xview2/train/targets', '/mnt/d/Downloads/xview2/tier3/targets'),
-            #target_dir=('./xview2/update/train/targets', './xview2/update/tier3/targets'),
+            image_dir=('./xview2/update/train/images', './xview2/update/tier3/images'),
+            target_dir=('./xview2/update/train/targets', './xview2/update/tier3/targets'),
             include=('pre',),
             CV=dict(
                 on=False,
@@ -31,17 +29,17 @@ data = dict(
                           std=(0.229, 0.224, 0.225), max_pixel_value=255),
                 er.preprocess.albu.ToTensor(),
             ]),
-            batch_size=4, #16
-            num_workers=2, #4
+            batch_size=16,
+            num_workers=4,
             training=True
         ),
     ),
     test=dict(
         type='LEVIRCDLoader',
         params=dict(
-            root_dir=('/mnt/d/Downloads/LEVIR-CD/train',
-                      '/mnt/d/Downloads/LEVIR-CD/val',
-                      '/mnt/d/Downloads/LEVIR-CD/test'),
+            root_dir=('./LEVIR-CD/train',
+                      './LEVIR-CD/val',
+                      './LEVIR-CD/test'),
             transforms=Compose([
                 Normalize(mean=(0.485, 0.456, 0.406,
                                 0.485, 0.456, 0.406),
@@ -49,8 +47,8 @@ data = dict(
                                0.229, 0.224, 0.225), max_pixel_value=255),
                 er.preprocess.albu.ToTensor(),
             ]),
-            batch_size=2, #4
-            num_workers=1, #2
+            batch_size=4,
+            num_workers=2,
             training=False
         ),
     )
@@ -76,7 +74,7 @@ learning_rate = dict(
 )
 train = dict(
     forward_times=1,
-    num_iters=1000,
+    num_iters=40000,
     eval_per_epoch=True,
     summary_grads=False,
     summary_weights=False,

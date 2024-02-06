@@ -7,7 +7,7 @@ data = dict(
         type='LEVIRCDLoader',
         params=dict(
             root_dir=(
-                '/mnt/d/Downloads/LEVIR-CD/train',
+                './LEVIR-CD/train',
             ),
             transforms=Compose([
                 OneOf([
@@ -21,15 +21,15 @@ data = dict(
                           std=(0.229, 0.224, 0.225, 0.229, 0.224, 0.225), max_pixel_value=255),
                 er.preprocess.albu.ToTensor(),
             ]),
-            batch_size=4, #16
-            num_workers=2, #8
+            batch_size=16,
+            num_workers=8,
             training=True
         ),
     ),
     test=dict(
         type='LEVIRCDLoader',
         params=dict(
-            root_dir='/mnt/d/Downloads/LEVIR-CD/test',
+            root_dir='./LEVIR-CD/test',
             transforms=Compose([
                 Normalize(mean=(0.485, 0.456, 0.406, 0.485, 0.456, 0.406),
                           std=(0.229, 0.224, 0.225, 0.229, 0.224, 0.225), max_pixel_value=255),
@@ -70,7 +70,7 @@ train = dict(
     apex_sync_bn=True,
     sync_bn=False,
     eval_after_train=True,
-    log_interval_step=5, #50
+    log_interval_step=50,
     save_ckpt_interval_epoch=1000,
     eval_interval_epoch=10,
 )
