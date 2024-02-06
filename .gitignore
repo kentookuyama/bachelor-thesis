@@ -2,3 +2,31 @@
 
 .idea
 dev
+
+# Ignore compiled Python files
+*.pyc
+
+# Ignore Python cache directories
+__pycache__/
+
+# Ignore .pth files
+*.pth
+
+# Ignore pickled files
+*.pkl
+
+# Ignore Jupyter notebooks checkpoints and runtime files
+.ipynb_checkpoints/
+*.ipynb.meta
+*.ipynb_checkpoints/
+
+# Ignore data directory
+data/
+
+# Ignore runs directory
+runs/
+
+# Ignore logs directory
+*.log
+
+*.npy
