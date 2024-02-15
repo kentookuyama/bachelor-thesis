@@ -30,3 +30,15 @@ runs/
 *.log
 
 *.npy
+
+venv/
+
+log/
+
+past_run/
+
+LEVIR-CD
+
+changestartest.sh
+trainxView2_res.txt
+xview2

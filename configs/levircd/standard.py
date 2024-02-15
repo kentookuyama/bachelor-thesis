@@ -1,64 +1,79 @@
-from albumentations import Compose, OneOf, Normalize
-from albumentations import HorizontalFlip, VerticalFlip, RandomRotate90, RandomCrop
 import ever as er
+from albumentations import (
+    Compose,
+    HorizontalFlip,
+    Normalize,
+    OneOf,
+    RandomCrop,
+    RandomRotate90,
+    VerticalFlip,
+)
 
 data = dict(
     train=dict(
-        type='LEVIRCDLoader',
+        type="LEVIRCDLoader",
         params=dict(
-            root_dir=(
-                '/mnt/d/Downloads/LEVIR-CD/train',
+            root_dir=("./LEVIR-CD/train",),
+            transforms=Compose(
+                [
+                    OneOf(
+                        [
+                            HorizontalFlip(True),
+                            VerticalFlip(True),
+                            RandomRotate90(True),
+                        ],
+                        p=0.5,
+                    ),
+                    er.preprocess.albu.RandomDiscreteScale([0.75, 1.25, 1.5], p=0.5),
+                    RandomCrop(512, 512, True),
+                    Normalize(
+                        mean=(0.485, 0.456, 0.406, 0.485, 0.456, 0.406),
+                        std=(0.229, 0.224, 0.225, 0.229, 0.224, 0.225),
+                        max_pixel_value=255,
+                    ),
+                    er.preprocess.albu.ToTensor(),
+                ]
             ),
-            transforms=Compose([
-                OneOf([
-                    HorizontalFlip(True),
-                    VerticalFlip(True),
-                    RandomRotate90(True)
-                ], p=0.5),
-                er.preprocess.albu.RandomDiscreteScale([0.75, 1.25, 1.5], p=0.5),
-                RandomCrop(512, 512, True),
-                Normalize(mean=(0.485, 0.456, 0.406, 0.485, 0.456, 0.406),
-                          std=(0.229, 0.224, 0.225, 0.229, 0.224, 0.225), max_pixel_value=255),
-                er.preprocess.albu.ToTensor(),
-            ]),
-            batch_size=4, #16
-            num_workers=2, #8
-            training=True
+            batch_size=16,  # 16
+            num_workers=8,  # 8
+            training=True,
         ),
     ),
     test=dict(
-        type='LEVIRCDLoader',
+        type="LEVIRCDLoader",
         params=dict(
-            root_dir='/mnt/d/Downloads/LEVIR-CD/test',
-            transforms=Compose([
-                Normalize(mean=(0.485, 0.456, 0.406, 0.485, 0.456, 0.406),
-                          std=(0.229, 0.224, 0.225, 0.229, 0.224, 0.225), max_pixel_value=255),
-                er.preprocess.albu.ToTensor(),
-            ]),
+            root_dir="./LEVIR-CD/test",
+            transforms=Compose(
+                [
+                    Normalize(
+                        mean=(0.485, 0.456, 0.406, 0.485, 0.456, 0.406),
+                        std=(0.229, 0.224, 0.225, 0.229, 0.224, 0.225),
+                        max_pixel_value=255,
+                    ),
+                    er.preprocess.albu.ToTensor(),
+                ]
+            ),
             batch_size=4,
             num_workers=0,
-            training=False
+            training=False,
         ),
     ),
 )
 optimizer = dict(
-    type='sgd',
-    params=dict(
-        momentum=0.9,
-        weight_decay=0.0001
-    ),
+    type="sgd",
+    params=dict(momentum=0.9, weight_decay=0.0001),
     grad_clip=dict(
         max_norm=35,
         norm_type=2,
-    )
+    ),
 )
 learning_rate = dict(
-    type='poly',
+    type="poly",
     params=dict(
         base_lr=0.03,
         power=0.9,
         max_iters=5600,
-    )
+    ),
 )
 train = dict(
     forward_times=1,
@@ -70,9 +85,8 @@ train = dict(
     apex_sync_bn=True,
     sync_bn=False,
     eval_after_train=True,
-    log_interval_step=5, #50
+    log_interval_step=50,  # 50
     save_ckpt_interval_epoch=1000,
     eval_interval_epoch=10,
 )
-test = dict(
-)
+test = dict()

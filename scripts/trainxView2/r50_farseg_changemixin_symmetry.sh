@@ -1,11 +1,62 @@
 #!/usr/bin/env bash
+#
+#SBATCH --job-name trainxView2
+#SBATCH --output=trainxView2_res.txt
+#SBATCH --ntasks=1
+#SBATCH --time=24:00:00
+#SBATCH --gres=gpu:1
 
+# debug info
+hostname
+which python3
+nvidia-smi
+
+python3 -V
+env
+
+# Activate Miniconda environment
+source /home/stud/okuyama/miniconda3/etc/profile.d/conda.sh
+
+# Activate existing Conda environment
+conda activate kentoenv
+
+pip install -U pip setuptools wheel
+
+# Install required packages
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install requests # in the CNN example: torchvision depends on requests (download of MNIST data)
+
+# test cuda
+python3 -c "import torch; print(torch.cuda.device_count())"
+python3 -c "import torch; print(torch.cuda.current_device())"
+
+# Set environment variables for your script
 export CUDA_VISIBLE_DEVICES=0
 NUM_GPUS=1
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
+# Define the directories and paths
+declare -A dirs=(
+  ["./xview2"]="/home/stud/okuyama/data/xview2"
+  ["./LEVIR-CD"]="/home/stud/okuyama/data/LEVIR-CD"
+)
+
+# Check and create symbolic links
+for path in "${!dirs[@]}"; do
+  dest="${dirs[$path]}"
+  if [ ! -e "$path" ]; then
+    echo "Creating symbolic link: $path -> $dest"
+    ln -s "$dest" "$path"
+  else
+    echo "Symbolic link already exists: $path -> $dest"
+  fi
+done
+
+# Run your specific script
 config_path='trainxView2.r50_farseg_changemixin_symmetry'
 model_dir='./log/changestar_sisup/r50_farseg_changemixin_symmetry'
+
+export LOCAL_RANK=0
 
 torchrun --nproc_per_node=${NUM_GPUS} --master_port 6699 ./train_changemixin.py \
   --config_path=${config_path} \
