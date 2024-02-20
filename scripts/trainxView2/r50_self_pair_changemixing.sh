@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-#SBATCH --job-name trainxView2
-#SBATCH --output=r50_trainxView2_res.txt
+#SBATCH --job-name selfPair
+#SBATCH --output=r50_self_pair_test.txt
 #SBATCH --ntasks=1
-#SBATCH --time=18:00:00
+#SBATCH --time=1:00:00
 #SBATCH --gres=gpu:1
 
 # debug info
@@ -57,8 +57,8 @@ for path in "${!dirs[@]}"; do
 done
 
 # Run your specific script
-config_path='trainxView2.r50_farseg_changemixin_symmetry'
-model_dir='./log/changestar_sisup/r50_farseg_changemixin_symmetry'
+config_path='trainxView2.r50_self_pair_changemixin'
+model_dir='./log/selfpair/r50_self_pair_changemixin.sh'
 
 export LOCAL_RANK=0
 
