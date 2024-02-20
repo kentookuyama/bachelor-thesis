@@ -1,10 +1,10 @@
 from ever.module import fpn
 
-from configs.levircd import standard
+from configs.trainxView2 import standard
 
 config = dict(
     model=dict(
-        type="ChangeStarBiSup",
+        type="ChangeStar",
         params=dict(
             segmenation=dict(
                 model_type="farseg",
@@ -36,6 +36,7 @@ config = dict(
                 ),
                 loss_config=dict(bce=True, dice=True, ignore_index=-1),
             ),
+            classifier=dict(in_channels=256, out_channels=1, scale=4.0),
             detector=dict(
                 name="convs",
                 in_channels=256 * 2,
@@ -43,8 +44,20 @@ config = dict(
                 out_channels=1,
                 scale=4.0,
                 num_convs=4,
+                symmetry_loss=True,
+                drop_rate=0.2,
+                t1t2=True,
+                t2t1=True,
             ),
-            loss_config=dict(bce=True, dice=True, ignore_index=-1),
+            loss_config=dict(
+                change=dict(bce=True, weight=0.5, ignore_index=-1),
+                semantic=dict(
+                    on=True,
+                    bce=True,
+                    dice=True,
+                    ignore_index=-1,
+                ),
+            ),
         ),
     ),
     data=standard.data,

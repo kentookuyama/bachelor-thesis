@@ -48,7 +48,7 @@ data = dict(
                     er.preprocess.albu.ToTensor(),
                 ]
             ),
-            batch_size=12,  # 16
+            batch_size=16,  # 16
             num_workers=4,  # 4
             training=True,
         ),

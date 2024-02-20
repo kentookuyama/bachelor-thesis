@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
 #SBATCH --job-name trainxView2
-#SBATCH --output=trainxView2_res.txt
+#SBATCH --output=r18_trainxView2_res.txt
 #SBATCH --ntasks=1
-#SBATCH --time=24:00:00
+#SBATCH --time=18:00:00
 #SBATCH --gres=gpu:1
 
 # debug info
@@ -53,8 +53,8 @@ for path in "${!dirs[@]}"; do
 done
 
 # Run your specific script
-config_path='trainxView2.r50_farseg_changemixin_symmetry'
-model_dir='./log/changestar_sisup/r50_farseg_changemixin_symmetry'
+config_path='trainxView2.r18_farseg_changemixin_symmetry'
+model_dir='./log/changestar_sisup/r18_farseg_changemixin_symmetry'
 
 export LOCAL_RANK=0
 
