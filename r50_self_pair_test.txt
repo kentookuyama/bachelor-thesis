@@ -1,0 +1,170 @@
+rhodos
+/usr/bin/python3
+Tue Feb 20 13:46:45 2024       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.129.03             Driver Version: 535.129.03   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  NVIDIA GeForce GTX 1080 Ti     Off | 00000000:B3:00.0 Off |                  N/A |
+| 19%   38C    P0              53W / 250W |      0MiB / 11264MiB |      2%      Default |
+|                                         |                      |                  N/A |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|  No running processes found                                                           |
++---------------------------------------------------------------------------------------+
+Python 3.8.10
+SHELL=/bin/bash
+SLURM_JOB_USER=okuyama
+SLURM_TASKS_PER_NODE=1
+SLURM_JOB_UID=33115
+SLURM_TASK_PID=2908419
+SLURM_JOB_GPUS=1
+SLURM_LOCALID=0
+SLURM_SUBMIT_DIR=/home/stud/okuyama/bachelor-thesis
+HOSTNAME=rhodos
+SLURMD_NODENAME=rhodos
+SLURM_NODE_ALIASES=(null)
+SLURM_CLUSTER_NAME=cluster
+SLURM_CPUS_ON_NODE=1
+SLURM_JOB_CPUS_PER_NODE=1
+PWD=/home/stud/okuyama/bachelor-thesis
+SLURM_GTIDS=0
+LOGNAME=okuyama
+XDG_SESSION_TYPE=tty
+SLURM_JOB_PARTITION=main
+SLURM_JOB_NUM_NODES=1
+SLURM_JOBID=12323
+SLURM_JOB_QOS=normal
+MOTD_SHOWN=pam
+HOME=/home/stud/okuyama
+LANG=de_DE.UTF-8
+SLURM_PROCID=0
+TMPDIR=/tmp
+SLURM_NTASKS=1
+SLURM_TOPOLOGY_ADDR=rhodos
+SSH_CONNECTION=10.155.205.80 51822 10.153.51.188 22
+SLURM_TOPOLOGY_ADDR_PATTERN=node
+CUDA_VISIBLE_DEVICES=0
+XDG_SESSION_CLASS=user
+SLURM_WORKING_CLUSTER=cluster:telanor:6817:8704:101
+TERM=xterm-256color
+USER=okuyama
+SLURM_NODELIST=rhodos
+ENVIRONMENT=BATCH
+GPU_DEVICE_ORDINAL=0
+SLURM_JOB_ACCOUNT=stud
+SLURM_PRIO_PROCESS=0
+SLURM_NPROCS=1
+SHLVL=2
+SLURM_NNODES=1
+XDG_SESSION_ID=2
+SLURM_SUBMIT_HOST=crestfall
+XDG_RUNTIME_DIR=/run/user/33115
+SLURM_JOB_ID=12323
+SLURM_NODEID=0
+SSH_CLIENT=10.155.205.80 51822 22
+XDG_DATA_DIRS=/usr/local/share:/usr/share:/var/lib/snapd/desktop
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+SLURM_JOB_NAME=selfPair
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/33115/bus
+SSH_TTY=/dev/pts/0
+SLURM_JOB_GID=12100
+OLDPWD=/home/stud/okuyama/bachelor-thesis/FDA
+SLURM_JOB_NODELIST=rhodos
+_=/usr/bin/env
+Requirement already satisfied: pip in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (24.0)
+Requirement already satisfied: setuptools in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (69.1.0)
+Requirement already satisfied: wheel in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (0.42.0)
+Looking in indexes: https://download.pytorch.org/whl/cu118
+Requirement already satisfied: torch in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (2.2.0)
+Requirement already satisfied: torchvision in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (0.15.2a0)
+Requirement already satisfied: torchaudio in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (2.2.0)
+Requirement already satisfied: filelock in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (3.13.1)
+Requirement already satisfied: typing-extensions>=4.8.0 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (4.8.0)
+Requirement already satisfied: sympy in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (1.12)
+Requirement already satisfied: networkx in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (3.1)
+Requirement already satisfied: jinja2 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (3.1.3)
+Requirement already satisfied: fsspec in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (2023.10.0)
+Requirement already satisfied: numpy in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torchvision) (1.24.3)
+Requirement already satisfied: requests in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torchvision) (2.31.0)
+Requirement already satisfied: pillow!=8.3.*,>=5.3.0 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torchvision) (10.2.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from jinja2->torch) (2.1.3)
+Requirement already satisfied: charset-normalizer<4,>=2 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests->torchvision) (2.0.4)
+Requirement already satisfied: idna<4,>=2.5 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests->torchvision) (3.4)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests->torchvision) (1.26.18)
+Requirement already satisfied: certifi>=2017.4.17 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests->torchvision) (2024.2.2)
+Requirement already satisfied: mpmath>=0.19 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from sympy->torch) (1.3.0)
+Requirement already satisfied: requests in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (2.31.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests) (2.0.4)
+Requirement already satisfied: idna<4,>=2.5 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests) (3.4)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests) (1.26.18)
+Requirement already satisfied: certifi>=2017.4.17 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests) (2024.2.2)
+----------------------------------------
+| Currently CUDA availability: 0   |
+| Number of CUDA devices: 0   |
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/cuda/__init__.py", line 787, in current_device
+    _lazy_init()
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/cuda/__init__.py", line 293, in _lazy_init
+    raise AssertionError("Torch not compiled with CUDA enabled")
+AssertionError: Torch not compiled with CUDA enabled
+----------------------------------------
+Symbolic link already exists: ./xview2 -> /home/stud/okuyama/data/xview2
+Symbolic link already exists: ./LEVIR-CD -> /home/stud/okuyama/data/LEVIR-CD
+/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torchvision/io/image.py:13: UserWarning: Failed to load image Python extension: 'libc10_cuda.so: cannot open shared object file: No such file or directory'If you don't plan on using image functionality from `torchvision.io`, you can ignore this warning. Otherwise, there might be something wrong with your environment. Did you have `libjpeg` or `libpng` installed before building `torchvision` from source?
+  warn(
+####Training script started.####
+/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/autograd/profiler.py:228: UserWarning: CUDA is not available, disabling CUDA profiling
+  warn("CUDA is not available, disabling CUDA profiling")
+INFO:ever.core.logger:ResNetEncoder: pretrained = True
+Traceback (most recent call last):
+  File "./train_changemixin.py", line 61, in <module>
+    trainer.run(after_construct_launcher_callbacks=[register_leviscd_evaluate_fn])
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/ever/api/trainer/th_amp_ddp_trainer.py", line 100, in run
+    kwargs.update(dict(model=self.make_model()))
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/ever/api/trainer/th_amp_ddp_trainer.py", line 89, in make_model
+    model = nn.parallel.DistributedDataParallel(
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/nn/parallel/distributed.py", line 705, in __init__
+    self._log_and_throw(
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/nn/parallel/distributed.py", line 1040, in _log_and_throw
+    raise err_type(err_msg)
+ValueError: DistributedDataParallel device_ids and output_device arguments only work with single-device/multiple-device GPU modules or CPU modules, but got device_ids [None], output_device None, and module parameters {device(type='cpu')}.
+[2024-02-20 13:47:11,611] torch.distributed.elastic.multiprocessing.api: [ERROR] failed (exitcode: 1) local_rank: 0 (pid: 2908475) of binary: /home/stud/okuyama/miniconda3/envs/kentoenv/bin/python
+Traceback (most recent call last):
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/bin/torchrun", line 11, in <module>
+    sys.exit(main())
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 347, in wrapper
+    return f(*args, **kwargs)
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/distributed/run.py", line 812, in main
+    run(args)
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/distributed/run.py", line 803, in run
+    elastic_launch(
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/distributed/launcher/api.py", line 135, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/distributed/launcher/api.py", line 268, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+./train_changemixin.py FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2024-02-20_13:47:11
+  host      : rhodos
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 2908475)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================

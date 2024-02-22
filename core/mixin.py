@@ -2,16 +2,45 @@ import ever as er
 import numpy as np
 import torch
 import torch.nn as nn
-from core import loss, field
+
+from core import field, loss
 from core.head import get_detector
 
 MAX_TIMES = 50
 
 
+# def generate_target(x1, y):
+#     # x [N, C * 1, H, W]
+#     # y dict(mask1=tensor[N, H, W], ...)
+#     mask1 = y[field.MASK1]
+#     N = x1.size(0)
+#     org_inds = np.arange(N)
+#     t = 0
+#     while True and t <= MAX_TIMES:
+#         t += 1
+#         shuffle_inds = org_inds.copy()
+#         np.random.shuffle(shuffle_inds)
+
+#         ok = org_inds == shuffle_inds
+#         if all(~ok):
+#             break
+#     virtual_x2 = x1[shuffle_inds, :, :, :]
+#     virtual_mask2 = mask1[shuffle_inds, ...]
+#     x = torch.cat([x1, virtual_x2], dim=1)
+
+#     y[field.VMASK2] = virtual_mask2
+#     return x, y
+
+
 def generate_target(x1, y):
-    # x [N, C * 1, H, W]
-    # y dict(mask1=tensor[N, H, W], ...)
-    mask1 = y[field.MASK1]
+    # x1: [N, C * 1, H, W]
+    # y: dict(original_mask=tensor[N, H, W], transformed_mask=tensor[N, H, W], xor_mask=tensor[N, H, W])
+
+    # Extract data from the dictionary
+    original_mask = y[field.MASK1]
+    transformed_mask = y["transformed_mask"]
+    xor_mask = y["xor_mask"]
+
     N = x1.size(0)
     org_inds = np.arange(N)
     t = 0
@@ -23,20 +52,27 @@ def generate_target(x1, y):
         ok = org_inds == shuffle_inds
         if all(~ok):
             break
-    virtual_x2 = x1[shuffle_inds, :, :, :]
-    virtual_mask2 = mask1[shuffle_inds, ...]
+
+    # Shuffle the original_mask, transformed_mask, and xor_mask
+    virtual_original_mask = original_mask[shuffle_inds, ...]
+    virtual_transformed_mask = transformed_mask[shuffle_inds, ...]
+
+    # Concatenate the original and transformed images along the channel dimension
+    virtual_x2 = torch.cat([x1[:, 3:, :, :], x1[:, :3, :, :]], dim=1)
+
+    # Concatenate the original and transformed masks along the channel dimension
+    virtual_mask2 = torch.cat([virtual_original_mask, virtual_transformed_mask], dim=1)
+
     x = torch.cat([x1, virtual_x2], dim=1)
 
+    # Update the dictionary with virtual masks
     y[field.VMASK2] = virtual_mask2
+
     return x, y
 
 
 class ChangeMixin(nn.Module):
-    def __init__(self,
-                 feature_extractor,
-                 classifier,
-                 detector_config,
-                 loss_config):
+    def __init__(self, feature_extractor, classifier, detector_config, loss_config):
         super(ChangeMixin, self).__init__()
         self.features = feature_extractor
         self.classifier = classifier
@@ -64,12 +100,16 @@ class ChangeMixin(nn.Module):
             y1_pred = self.classify(y1_feature)
 
             # extract positive feature
-            if self.detector_config.get('t1t2', True):
-                change_y1vy2_logit = self.change_detector(torch.cat([y1_feature, vy2_feature], dim=1))
+            if self.detector_config.get("t1t2", True):
+                change_y1vy2_logit = self.change_detector(
+                    torch.cat([y1_feature, vy2_feature], dim=1)
+                )
             else:
                 change_y1vy2_logit = None
-            if self.detector_config.get('t2t1', True):
-                change_y2vy1_logit = self.change_detector(torch.cat([vy2_feature, y1_feature], dim=1))
+            if self.detector_config.get("t2t1", True):
+                change_y2vy1_logit = self.change_detector(
+                    torch.cat([vy2_feature, y1_feature], dim=1)
+                )
             else:
                 change_y2vy1_logit = None
 
@@ -79,14 +119,17 @@ class ChangeMixin(nn.Module):
             loss_dict = dict()
             loss_dict.update(loss.misc_info(y1_pred.device))
 
-            if self.detector_config.get('symmetry_loss', False):
+            if self.detector_config.get("symmetry_loss", False):
                 loss_dict.update(
-                    loss.semantic_and_symmetry_loss(y1_true,
-                                                    vy2_true,
-                                                    y1_pred,
-                                                    change_y1vy2_logit,
-                                                    change_y2vy1_logit,
-                                                    self.loss_config))
+                    loss.semantic_and_symmetry_loss(
+                        y1_true,
+                        vy2_true,
+                        y1_pred,
+                        change_y1vy2_logit,
+                        change_y2vy1_logit,
+                        self.loss_config,
+                    )
+                )
             else:
                 raise ValueError()
 
@@ -100,7 +143,9 @@ class ChangeMixin(nn.Module):
 
         y1_pred = self.classify(y1_feature)
 
-        change_y1y2_logit = self.change_detector(torch.cat([y1_feature, y2_feature], dim=1))
+        change_y1y2_logit = self.change_detector(
+            torch.cat([y1_feature, y2_feature], dim=1)
+        )
 
         y2_pred = self.classify(y2_feature)
 

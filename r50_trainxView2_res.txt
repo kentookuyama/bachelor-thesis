@@ -1,0 +1,174 @@
+saba
+/usr/bin/python3
+Wed Feb 21 18:08:05 2024       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.129.03             Driver Version: 535.129.03   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  NVIDIA GeForce GTX 1080 Ti     Off | 00000000:02:00.0 Off |                  N/A |
+|  0%   41C    P8              22W / 300W |      0MiB / 11264MiB |      0%      Default |
+|                                         |                      |                  N/A |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|  No running processes found                                                           |
++---------------------------------------------------------------------------------------+
+Python 3.8.10
+SHELL=/bin/bash
+SLURM_JOB_USER=okuyama
+SLURM_TASKS_PER_NODE=1
+SLURM_JOB_UID=33115
+SLURM_TASK_PID=3548008
+SLURM_JOB_GPUS=0
+SLURM_LOCALID=0
+SLURM_SUBMIT_DIR=/home/stud/okuyama/bachelor-thesis
+HOSTNAME=saba
+SLURMD_NODENAME=saba
+SLURM_NODE_ALIASES=(null)
+SLURM_CLUSTER_NAME=cluster
+SLURM_CPUS_ON_NODE=1
+SLURM_JOB_CPUS_PER_NODE=1
+PWD=/home/stud/okuyama/bachelor-thesis
+SLURM_GTIDS=0
+LOGNAME=okuyama
+XDG_SESSION_TYPE=tty
+SLURM_JOB_PARTITION=main
+SLURM_JOB_NUM_NODES=1
+SLURM_JOBID=12344
+SLURM_JOB_QOS=normal
+MOTD_SHOWN=pam
+HOME=/home/stud/okuyama
+LANG=de_DE.UTF-8
+SLURM_PROCID=0
+TMPDIR=/tmp
+SLURM_NTASKS=1
+SLURM_TOPOLOGY_ADDR=saba
+SSH_CONNECTION=10.155.205.123 54508 10.153.51.188 22
+SLURM_TOPOLOGY_ADDR_PATTERN=node
+CUDA_VISIBLE_DEVICES=0
+XDG_SESSION_CLASS=user
+SLURM_WORKING_CLUSTER=cluster:telanor:6817:8704:101
+TERM=xterm-256color
+USER=okuyama
+SLURM_NODELIST=saba
+ENVIRONMENT=BATCH
+GPU_DEVICE_ORDINAL=0
+SLURM_JOB_ACCOUNT=stud
+SLURM_PRIO_PROCESS=0
+SLURM_NPROCS=1
+SHLVL=2
+SLURM_NNODES=1
+XDG_SESSION_ID=1777
+SLURM_SUBMIT_HOST=crestfall
+XDG_RUNTIME_DIR=/run/user/33115
+SLURM_JOB_ID=12344
+SLURM_NODEID=0
+SSH_CLIENT=10.155.205.123 54508 22
+XDG_DATA_DIRS=/usr/local/share:/usr/share:/var/lib/snapd/desktop
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+SLURM_JOB_NAME=trainxView2
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/33115/bus
+SSH_TTY=/dev/pts/13
+SLURM_JOB_GID=12100
+OLDPWD=/home/stud/okuyama
+SLURM_JOB_NODELIST=saba
+_=/usr/bin/env
+Requirement already satisfied: pip in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (24.0)
+Requirement already satisfied: setuptools in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (69.1.0)
+Requirement already satisfied: wheel in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (0.42.0)
+Looking in indexes: https://download.pytorch.org/whl/cu118
+Requirement already satisfied: torch in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (2.2.0)
+Requirement already satisfied: torchvision in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (0.17.0)
+Requirement already satisfied: torchaudio in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (2.2.0)
+Requirement already satisfied: filelock in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (3.13.1)
+Requirement already satisfied: typing-extensions>=4.8.0 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (4.8.0)
+Requirement already satisfied: sympy in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (1.12)
+Requirement already satisfied: networkx in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (3.1)
+Requirement already satisfied: jinja2 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (3.1.3)
+Requirement already satisfied: fsspec in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torch) (2023.10.0)
+Requirement already satisfied: numpy in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torchvision) (1.24.3)
+Requirement already satisfied: requests in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torchvision) (2.31.0)
+Requirement already satisfied: pillow!=8.3.*,>=5.3.0 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from torchvision) (10.2.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from jinja2->torch) (2.1.3)
+Requirement already satisfied: charset-normalizer<4,>=2 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests->torchvision) (2.0.4)
+Requirement already satisfied: idna<4,>=2.5 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests->torchvision) (3.4)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests->torchvision) (1.26.18)
+Requirement already satisfied: certifi>=2017.4.17 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests->torchvision) (2024.2.2)
+Requirement already satisfied: mpmath>=0.19 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from sympy->torch) (1.3.0)
+Requirement already satisfied: requests in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (2.31.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests) (2.0.4)
+Requirement already satisfied: idna<4,>=2.5 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests) (3.4)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests) (1.26.18)
+Requirement already satisfied: certifi>=2017.4.17 in /home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages (from requests) (2024.2.2)
+----------------------------------------
+| Currently CUDA availability: 0   |
+| Number of CUDA devices: 0   |
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/cuda/__init__.py", line 787, in current_device
+    _lazy_init()
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/cuda/__init__.py", line 293, in _lazy_init
+    raise AssertionError("Torch not compiled with CUDA enabled")
+AssertionError: Torch not compiled with CUDA enabled
+----------------------------------------
+Symbolic link already exists: ./xview2 -> /home/stud/okuyama/data/xview2
+Symbolic link already exists: ./LEVIR-CD -> /home/stud/okuyama/data/LEVIR-CD
+Traceback (most recent call last):
+  File "./train_changemixin.py", line 4, in <module>
+    import ever as er
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/ever/__init__.py", line 16, in <module>
+    from ever.api import preprocess
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/ever/api/preprocess/__init__.py", line 1, in <module>
+    from . import albu
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/ever/api/preprocess/albu.py", line 5, in <module>
+    from albumentations.pytorch import ToTensorV2
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/albumentations/pytorch/__init__.py", line 3, in <module>
+    from .transforms import *
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/albumentations/pytorch/transforms.py", line 7, in <module>
+    from torchvision.transforms import functional as F
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torchvision/__init__.py", line 6, in <module>
+    from torchvision import _meta_registrations, datasets, io, models, ops, transforms, utils
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torchvision/_meta_registrations.py", line 164, in <module>
+    def meta_nms(dets, scores, iou_threshold):
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/library.py", line 440, in inner
+    handle = entry.abstract_impl.register(func_to_register, source)
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/_library/abstract_impl.py", line 30, in register
+    if torch._C._dispatch_has_kernel_for_dispatch_key(self.qualname, "Meta"):
+RuntimeError: operator torchvision::nms does not exist
+[2024-02-21 18:09:12,633] torch.distributed.elastic.multiprocessing.api: [ERROR] failed (exitcode: 1) local_rank: 0 (pid: 3548098) of binary: /home/stud/okuyama/miniconda3/envs/kentoenv/bin/python
+Traceback (most recent call last):
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/bin/torchrun", line 11, in <module>
+    sys.exit(main())
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 347, in wrapper
+    return f(*args, **kwargs)
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/distributed/run.py", line 812, in main
+    run(args)
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/distributed/run.py", line 803, in run
+    elastic_launch(
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/distributed/launcher/api.py", line 135, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/home/stud/okuyama/miniconda3/envs/kentoenv/lib/python3.8/site-packages/torch/distributed/launcher/api.py", line 268, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+./train_changemixin.py FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2024-02-21_18:09:12
+  host      : saba.dbs.informatik.uni-muenchen.de
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 3548098)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================

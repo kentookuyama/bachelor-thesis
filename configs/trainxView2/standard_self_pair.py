@@ -16,6 +16,16 @@ data = dict(
             root_dir=("./LEVIR-CD/train",),
             transforms=Compose(
                 [
+                    OneOf(
+                        [
+                            HorizontalFlip(True),
+                            VerticalFlip(True),
+                            RandomRotate90(True),
+                        ],
+                        p=0.5,
+                    ),
+                    er.preprocess.albu.RandomDiscreteScale([0.75, 1.25, 1.5], p=0.5),
+                    RandomCrop(512, 512, True),
                     Normalize(
                         mean=(0.485, 0.456, 0.406, 0.485, 0.456, 0.406),
                         std=(0.229, 0.224, 0.225, 0.229, 0.224, 0.225),
