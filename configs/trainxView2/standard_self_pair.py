@@ -13,8 +13,20 @@ data = dict(
     train=dict(
         type="MyCustomLoader",
         params=dict(
-            root_dir=("./LEVIR-CD/train",),
-            transforms=Compose(
+            image_dir=("./xview2/train/images"), #, "./xview2/tier3/images"
+            target_dir=("./xview2/train/targets"), #, "./xview2/tier3/targets"
+            include=("pre",),
+            CV=dict(
+                on=False,
+                cur_k=0,
+                k_fold=5,
+            ),
+            strategy_prob=dict(
+                random_crop_pair=1,
+                semantic_label_inpainting_pair=0,
+                semantic_label_copy_paste_pair=0,
+            ),
+            geo_transforms=Compose(
                 [
                     OneOf(
                         [
@@ -26,21 +38,26 @@ data = dict(
                     ),
                     er.preprocess.albu.RandomDiscreteScale([0.75, 1.25, 1.5], p=0.5),
                     RandomCrop(512, 512, True),
+                ]
+            ),
+            color_transforms=None,
+            common_transforms=Compose(
+                [
                     Normalize(
-                        mean=(0.485, 0.456, 0.406, 0.485, 0.456, 0.406),
-                        std=(0.229, 0.224, 0.225, 0.229, 0.224, 0.225),
+                        mean=(0.485, 0.456, 0.406),
+                        std=(0.229, 0.224, 0.225),
                         max_pixel_value=255,
                     ),
                     er.preprocess.albu.ToTensor(),
                 ]
             ),
-            batch_size=16,  # 16
-            num_workers=8,  # 8
+            batch_size=12,  # 16
+            num_workers=6,  # 4
             training=True,
         ),
     ),
     test=dict(
-        type="MyCustomLoader",
+        type="LEVIRCDLoader",
         params=dict(
             root_dir=("./LEVIR-CD/train", "./LEVIR-CD/val", "./LEVIR-CD/test"),
             transforms=Compose(

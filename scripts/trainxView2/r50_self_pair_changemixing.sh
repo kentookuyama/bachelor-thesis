@@ -5,6 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --time=1:00:00
 #SBATCH --gres=gpu:1
+#SBATCH --mincpus=8
 
 # debug info
 hostname
@@ -18,13 +19,9 @@ env
 source /home/stud/okuyama/miniconda3/etc/profile.d/conda.sh
 
 # Activate existing Conda environment
-conda activate kentoenv
+conda activate test_env
 
 pip install -U pip setuptools wheel
-
-# Install required packages
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install requests # in the CNN example: torchvision depends on requests (download of MNIST data)
 
 # Test CUDA
 echo "----------------------------------------"

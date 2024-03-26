@@ -23,6 +23,11 @@ data = dict(
                 cur_k=0,
                 k_fold=5,
             ),
+            strategy_prob=dict(
+                random_crop_pair=1,
+                semantic_label_inpainting_pair=0,
+                semantic_label_copy_paste_pair=0,
+            ),
             geo_transforms=Compose(
                 [
                     OneOf(

@@ -24,22 +24,26 @@ def bce_dice_loss(y_true: torch.Tensor, y_pred: torch.Tensor, loss_config, prefi
 
 
 def semantic_and_symmetry_loss(y1_true,
-                               vy2_true,
+                               y2_true,
                                y1_pred,
-                               change_y1vy2_logit,
-                               change_y2vy1_logit,
+                               y2_pred,
+                               change_y1y2_logit,
+                               change_y2y1_logit,
                                loss_config
                                ):
-    positive_mask = torch.logical_xor(y1_true, vy2_true)
+    # XOR mask between original and transformed image
+    positive_mask = torch.logical_xor(y1_true, y2_true)
 
     total_loss = dict()
+    # Changestar Self-pair should hit here
     if 'semantic' in loss_config and getattr(loss_config.semantic, 'on', True):
         total_loss.update(bce_dice_loss(y1_true, y1_pred, loss_config.semantic, 's'))
-    if change_y1vy2_logit is not None:
+        total_loss.update(bce_dice_loss(y2_true, y2_pred, loss_config.semantic, 's'))
+    if change_y1y2_logit is not None:
         total_loss.update(
-            bce_dice_loss(positive_mask, change_y1vy2_logit, loss_config.change, 'c12'))
-    if change_y2vy1_logit is not None:
+            bce_dice_loss(positive_mask, change_y1y2_logit, loss_config.change, 'c12'))
+    if change_y2y1_logit is not None:
         total_loss.update(
-            bce_dice_loss(positive_mask, change_y2vy1_logit, loss_config.change, 'c21'))
+            bce_dice_loss(positive_mask, change_y2y1_logit, loss_config.change, 'c21'))
 
     return total_loss

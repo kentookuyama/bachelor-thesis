@@ -3,8 +3,9 @@
 #SBATCH --job-name trainxView2
 #SBATCH --output=r50_trainxView2_res.txt
 #SBATCH --ntasks=1
-#SBATCH --time=18:00:00
+#SBATCH --time=1:00:00
 #SBATCH --gres=gpu:1
+#SBATCH --mincpus=8
 
 # debug info
 hostname
@@ -18,13 +19,9 @@ env
 source /home/stud/okuyama/miniconda3/etc/profile.d/conda.sh
 
 # Activate existing Conda environment
-conda activate kentoenv
+conda activate test_env
 
 pip install -U pip setuptools wheel
-
-# Install required packages
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install requests # in the CNN example: torchvision depends on requests (download of MNIST data)
 
 # Test CUDA
 echo "----------------------------------------"
@@ -32,7 +29,6 @@ python3 -c "import torch; print(f'| Currently CUDA availability: {torch.cuda.is_
 python3 -c "import torch; print(f'| Number of CUDA devices: {torch.cuda.device_count():<3} |')"
 python3 -c "import torch; print(f'| Current CUDA device: {torch.cuda.current_device():<3} |')"
 echo "----------------------------------------"
-
 
 # Set environment variables for your script
 export CUDA_VISIBLE_DEVICES=0

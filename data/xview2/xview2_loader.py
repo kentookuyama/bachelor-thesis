@@ -16,6 +16,7 @@ from albumentations import (
 from torch.utils.data import ConcatDataset, SequentialSampler
 
 from core.dataset import ColorAugDataset
+from data.self_pair.dataset import MyCustomDataset
 from data.xview2.xview2_dataset import PreCachedXview2Building
 
 
@@ -57,6 +58,10 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
                 geo_transform=self.config.geo_transforms,
                 color_transform=self.config.color_transforms,
                 common_transform=self.config.common_transforms,
+            )
+            dataset = MyCustomDataset(
+                dataset,
+                self.config.strategy_prob
             )
         if self.config.CV.on and self.config.CV.cur_k != -1:
             train_sampler, val_sampler = er.data.make_CVSamplers(
