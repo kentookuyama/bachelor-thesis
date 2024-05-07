@@ -1,6 +1,5 @@
 import ever as er
 import torch.nn as nn
-
 from core.mixin import ChangeMixin
 from module.segmentation import Segmentation
 
@@ -12,11 +11,21 @@ class ChangeStar(er.ERModule):
 
         segmentation = Segmentation(self.config.segmenation)
 
-        layers = [nn.Conv2d(self.config.classifier.in_channels, self.config.classifier.out_channels, 3, 1, 1),
-                  nn.UpsamplingBilinear2d(scale_factor=self.config.classifier.scale)]
+        layers = [
+            nn.Conv2d(
+                self.config.classifier.in_channels,
+                self.config.classifier.out_channels,
+                3,
+                1,
+                1,
+            ),
+            nn.UpsamplingBilinear2d(scale_factor=self.config.classifier.scale),
+        ]
         classifier = nn.Sequential(*layers)
 
-        self.changemixin = ChangeMixin(segmentation, classifier, self.config.detector, self.config.loss_config)
+        self.changemixin = ChangeMixin(
+            segmentation, classifier, self.config.detector, self.config.loss_config
+        )
 
     def forward(self, x, y=None):
         if self.training or x.size(1) == 6:
@@ -29,27 +38,22 @@ class ChangeStar(er.ERModule):
             return seg_logit.sigmoid()
 
     def set_default_config(self):
-        self.config.update(dict(
-            segmenation=dict(),
-            classifier=dict(
-                in_channels=256,
-                out_channels=1,
-                scale=4.0
-            ),
-            detector=dict(
-                name='convs',
-                in_channels=256 * 2,
-                inner_channels=16,
-                out_channels=1,
-                num_convs=4,
-            ),
-            loss_config=dict(
-                semantic=dict(ignore_index=-1),
-                change=dict(ignore_index=-1)
+        self.config.update(
+            dict(
+                segmenation=dict(),
+                classifier=dict(in_channels=256, out_channels=1, scale=4.0),
+                detector=dict(
+                    name="convs",
+                    in_channels=256 * 2,
+                    inner_channels=16,
+                    out_channels=1,
+                    num_convs=4,
+                ),
+                loss_config=dict(
+                    semantic=dict(ignore_index=-1), change=dict(ignore_index=-1)
+                ),
             )
-        ))
+        )
 
     def log_info(self):
-        return dict(
-            cfg=self.config
-        )
+        return dict(cfg=self.config)

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 #SBATCH --job-name trainxView2
-#SBATCH --output=r50_trainxView2_random_crop.txt
+#SBATCH --output=r50_trainxView2_original.txt
 #SBATCH --ntasks=1
 #SBATCH --time=24:00:00
 #SBATCH --gres=gpu:1
@@ -53,8 +53,8 @@ for path in "${!dirs[@]}"; do
 done
 
 # Run your specific script
-config_path='trainxView2.r50_farseg_changemixin_random_crop'
-model_dir='./log/changestar_sisup/r50_trainxView2_random_crop'
+config_path='trainxView2.r50_farseg_changemixin_original'
+model_dir='./log/changestar_sisup/r50_trainxView2_original'
 
 export LOCAL_RANK=0
 

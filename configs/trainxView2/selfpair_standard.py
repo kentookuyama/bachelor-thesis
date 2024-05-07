@@ -48,7 +48,7 @@ data = dict(
             batch_size=10,
             num_workers=6,
             training=True,
-            selfpair=False,
+            selfpair=True,
         ),
     ),
     test=dict(
