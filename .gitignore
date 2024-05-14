@@ -1,4 +1,50 @@
-# Created by .ignore support plugin (hsz.mobi)
 
 .idea
 dev
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignore .pth files
+*.pth
+
+# Ignore pickled files
+*.pkl
+
+# Ignore Jupyter notebooks checkpoints and runtime files
+.ipynb_checkpoints/
+*.ipynb.meta
+*.ipynb_checkpoints/
+
+# Ignore runs directory
+runs/
+
+# Ignore logs directory
+*.log
+
+*.npy
+
+venv/
+
+log/
+
+past_run/
+
+LEVIR-CD
+
+changestartest.sh
+trainxView2_res.txt
+xview2
+core/__pycache__/
+module/__pycache__/changestar.cpython-37.pyc
+data/xview2/__pycache__/xview2_loader.cpython-37.pyc
+data/xview2/__pycache__/xview2_dataset.cpython-37.pyc
+core/__pycache__/mixin.cpython-37.pyc
+core/__pycache__/dataset.cpython-37.pyc
+configs/trainxView2/__pycache__/standard.cpython-37.pyc
+configs/trainxView2/__pycache__/selfpair_standard.cpython-37.pyc
+configs/trainxView2/__pycache__/r50_farseg_changemixin_random_crop.cpython-37.pyc
+configs/trainxView2/__pycache__/r50_farseg_changemixin_original.cpython-37.pyc

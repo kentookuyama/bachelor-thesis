@@ -1,11 +1,14 @@
+import cv2
 import ever as er
 from albumentations import (
     Compose,
     HorizontalFlip,
     Normalize,
     OneOf,
+    PadIfNeeded,
     RandomCrop,
     RandomRotate90,
+    Resize,
     VerticalFlip,
 )
 
@@ -31,7 +34,6 @@ data = dict(
                         ],
                         p=0.5,
                     ),
-                    er.preprocess.albu.RandomDiscreteScale([0.75, 1.25, 1.5], p=0.5),
                 ]
             ),
             color_transforms=None,

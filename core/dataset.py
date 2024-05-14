@@ -1,59 +1,50 @@
+import glob
+import os
+import random
+
 import numpy as np
 import torch
 from core import field
+from skimage.io import imread
 from torch.utils.data import Dataset
 
 
 class ColorAugDataset(Dataset):
-    def __init__(self, dataset, geo_transform, color_transform, common_transform):
-        self.dataset = dataset
+    def __init__(
+        self, image_dir, targets_dir, geo_transform, color_transform, common_transform
+    ):
+        self.target_fps = sorted(
+            [fp for fp in glob.glob(os.path.join(targets_dir, "*.png")) if "pre" in fp]
+        )
+
+        self.image_fps = [
+            os.path.join(image_dir, os.path.basename(fp.replace("_target.png", ".png")))
+            for fp in self.target_fps
+        ]
         self.color_transform = color_transform
         self.geo_transform = geo_transform
         self.common_transform = common_transform
 
     def __getitem__(self, idx):
-        x, y = self.dataset[idx]
+        x = imread(self.image_fps[idx])
+        mask = imread(self.target_fps[idx])
+        y = dict()
+        y[field.MASK1] = mask
+        y["image_filename"] = os.path.basename(self.image_fps[idx])
 
-        if x.shape[1] == 99:
-            base_corner_tensor = x[0, :, :]
-            helper_corner_tensor = x[0, :, :]
-            image_1 = self.geo_transform(
-                **dict(image=base_corner_tensor.numpy(), mask=y[field.MASK1].numpy())
-            )
-            image_2 = self.geo_transform(
-                **dict(
-                    image=np.array(helper_corner_tensor), mask=np.array(y[field.VMASK2])
-                )
-            )
-            image_1_img = image_1["image"]
-            image_1_mask = image_1["mask"]
-            image_2_img = image_2["image"]
-            image_2_mask = image_2["mask"]
-
-            print("here are the image shapes")
-            print(image_1_img.shape)
-            print(image_2_img.shape)
-            print(image_1_mask.shape)
-            print(image_2_mask.shape)
-
-            # x, mask -> tensor
-            image_1 = self.common_transform(image=image_1_img, mask=image_1_mask)
-            image_2 = self.common_transform(image=image_2_img, mask=image_2_mask)
-
-            image_1_img = image_1["image"]
-            image_1_mask = image_1["mask"]
-            image_2_img = image_2["image"]
-            image_2_mask = image_2["mask"]
-
-            org_img = torch.cat([image_1_img, image_2_img], dim=1)
-            y[field.MASK1] = image_1_mask
-            y[field.VMASK2] = image_2_mask
-
-            return org_img, y
+        # Get initial image and mask shapes for comparison
+        orig_img_shape = x.shape
+        orig_mask_shape = y[field.MASK1].shape
 
         blob = self.geo_transform(**dict(image=x, mask=y[field.MASK1]))
         img = blob["image"]
         mask = blob["mask"]
+
+        # Check image and mask shapes after geometric transformation
+        if img.shape != orig_img_shape or mask.shape != orig_mask_shape:
+            print(f"WARNING: Shape mismatch after geo_transform!")
+            print(f"  Original image: {orig_img_shape}, mask: {orig_mask_shape}")
+            print(f"  After geo_transform: image: {img.shape}, mask: {mask.shape}")
 
         # x, mask -> tensor
         blob = self.common_transform(image=img, mask=mask)
@@ -71,4 +62,4 @@ class ColorAugDataset(Dataset):
         return org_img, y
 
     def __len__(self):
-        return len(self.dataset)
+        return len(self.image_fps)

@@ -1,5 +1,3 @@
-import glob
-import os
 import random
 
 import cv2
@@ -12,52 +10,46 @@ from torch.utils.data import Dataset
 
 
 class PreCachedXview2Building(Dataset):
-    def __init__(self, image_dir, targets_dir, transforms=None):
-        self.target_fps = sorted(
-            [fp for fp in glob.glob(os.path.join(targets_dir, "*.png")) if "pre" in fp]
-        )
+    def __init__(self, dataset, transforms=None):
+        # self.target_fps = sorted(
+        #     [fp for fp in glob.glob(os.path.join(targets_dir, "*.png")) if "pre" in fp]
+        # )
 
-        self.image_fps = [
-            os.path.join(image_dir, os.path.basename(fp.replace("_target.png", ".png")))
-            for fp in self.target_fps
-        ]
-
+        # self.image_fps = [
+        #     os.path.join(image_dir, os.path.basename(fp.replace("_target.png", ".png")))
+        #     for fp in self.target_fps
+        # ]
+        self.dataset = dataset
         self.transforms = transforms
 
     def __getitem__(self, idx):
-        img = imread(self.image_fps[idx])
-        mask = imread(self.target_fps[idx])
-
-        # Print shapes before transformations
-        print(f"Image shape before transformations: {img.shape}")
-        print(f"Mask shape before transformations: {mask.shape}")
+        img, y = self.dataset[idx]
+        mask = y[field.MASK1]
 
         if self.transforms:
             blob = self.transforms(**dict(image=img, mask=mask))
             img = blob["image"]
             mask = blob["mask"]
 
-        y = dict()
-        y[field.MASK1] = mask
-        y["image_filename"] = os.path.basename(self.image_fps[idx])
-        # Added split_image instead of img, y response
+        # y[field.MASK1] = mask
+        # y["image_filename"] = os.path.basename(self.image_fps[idx])
 
         return self.split_image(img, y)
 
     def __len__(self):
-        return len(self.image_fps)
+        return len(self.dataset)
 
     def split_image(self, x, y):
         img = x
         mask = y[field.MASK1]
-        h, w, _ = img.shape
+        c, h, w = img.shape
         mid_h, mid_w = h // 2, w // 2
 
         # Corners: a=top-left, b=top-right, c=bottom-left, d=bottom-right
-        corner_a = img[:mid_h, :mid_w, :]
-        corner_b = img[:mid_h, mid_w:, :]
-        corner_c = img[mid_h:, :mid_w, :]
-        corner_d = img[mid_h:, mid_w:, :]
+        corner_a = img[:, :mid_h, :mid_w]
+        corner_b = img[:, :mid_h, mid_w:]
+        corner_c = img[:, mid_h:, :mid_w]
+        corner_d = img[:, mid_h:, mid_w:]
 
         # Masks for each corner
         mask_a = mask[:mid_h, :mid_w]
@@ -66,15 +58,15 @@ class PreCachedXview2Building(Dataset):
         mask_d = mask[mid_h:, mid_w:]
 
         # Print shapes after splitting
-        print(f"Corner a shape: {corner_a.shape}")
-        print(f"Corner b shape: {corner_b.shape}")
-        print(f"Corner c shape: {corner_c.shape}")
-        print(f"Corner d shape: {corner_d.shape}")
+        # print(f"Corner a shape: {corner_a.shape}")
+        # print(f"Corner b shape: {corner_b.shape}")
+        # print(f"Corner c shape: {corner_c.shape}")
+        # print(f"Corner d shape: {corner_d.shape}")
 
-        print(f"Mask a shape: {mask_a.shape}")
-        print(f"Mask b shape: {mask_b.shape}")
-        print(f"Mask c shape: {mask_c.shape}")
-        print(f"Mask d shape: {mask_d.shape}")
+        # print(f"Mask a shape: {mask_a.shape}")
+        # print(f"Mask b shape: {mask_b.shape}")
+        # print(f"Mask c shape: {mask_c.shape}")
+        # print(f"Mask d shape: {mask_d.shape}")
 
         corners = {"a": corner_a, "b": corner_b, "c": corner_c, "d": corner_d}
         corner_masks = {"a": mask_a, "b": mask_b, "c": mask_c, "d": mask_d}
@@ -99,12 +91,12 @@ class PreCachedXview2Building(Dataset):
         # )
 
         # Inside the split_image function
-        base_corner = torch.from_numpy(base_corner.astype(np.float32)) / 255
-        helper_corner = torch.from_numpy(helper_corner.astype(np.float32)) / 255
-        base_mask = torch.from_numpy(base_mask.astype(np.float32)) / 255
-        helper_mask = torch.from_numpy(helper_mask.astype(np.float32)) / 255
+        base_corner = base_corner / 255
+        helper_corner = helper_corner / 255
+        base_mask = base_mask / 255
+        helper_mask = helper_mask / 255
 
-        x = torch.cat([base_corner, helper_corner], dim=2).permute(2, 0, 1)
+        x = torch.cat([base_corner, helper_corner], dim=0)
         y[field.MASK1] = base_mask
         y[field.VMASK2] = helper_mask
 

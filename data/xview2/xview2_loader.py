@@ -8,7 +8,6 @@ from albumentations import (
     HorizontalFlip,
     Normalize,
     OneOf,
-    RandomCrop,
     RandomRotate90,
     VerticalFlip,
 )
@@ -35,30 +34,40 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
         else:
             transform = self.config.common_transforms
 
+        ## 1. Perform data augmentations { horizontal and vertical flip, rotation of 90·k (k = 1, 2, 3) degree, and scale jitter }
+
         if isinstance(self.config.image_dir, (tuple, list)):
             dataset_list = []
             for im_dir, target_dir in zip(
                 self.config.image_dir, self.config.target_dir
             ):
-                # TODO Add option for different strategy combinations
                 dataset_list.append(
-                    PreCachedXview2Building(im_dir, target_dir, transform)
+                    ColorAugDataset(
+                        im_dir,
+                        target_dir,
+                        geo_transform=self.config.geo_transforms,
+                        color_transform=self.config.color_transforms,
+                        common_transform=self.config.common_transforms,
+                    )
                 )
-
-            dataset = ConcatDataset(dataset_list)
-
+                dataset = ConcatDataset(dataset_list)
         else:
-            dataset = PreCachedXview2Building(
-                self.config.image_dir, self.config.target_dir, transform
-            )
-
-        if self.config.training and not self.config.selfpair:
             dataset = ColorAugDataset(
-                dataset,
+                self.config.image_dir,
+                self.config.target_dir,
                 geo_transform=self.config.geo_transforms,
                 color_transform=self.config.color_transforms,
                 common_transform=self.config.common_transforms,
             )
+
+        print(f"Dataloader length : {len(dataset)}")
+
+        ## 2. Perform Random Cropping into 512x512 pixels for xview2 pre-disaster data
+        if self.config.training:
+            dataset = PreCachedXview2Building(dataset, transform)
+
+        print(f"Dataloader length after xview2 : {len(dataset)}")
+
         if self.config.CV.on and self.config.CV.cur_k != -1:
             train_sampler, val_sampler = er.data.make_CVSamplers(
                 dataset,
@@ -112,7 +121,6 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
                         er.preprocess.albu.RandomDiscreteScale(
                             [0.75, 1.25, 1.5], p=0.5
                         ),
-                        RandomCrop(512, 512, True),
                     ]
                 ),
                 color_transforms=None,

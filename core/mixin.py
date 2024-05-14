@@ -243,7 +243,7 @@ class ChangeMixin(nn.Module):
     def forward(self, x, y=None):
         if self.training:
             # HERE IS WHERE PSEUDO PAIR IS CREATED!!
-            if x.size(1) == 3:
+            if x.size(1) == 99:
                 print("target generated")
                 x, y = generate_pseudo_pair(x, y, self.detector_config.strategies)
 
