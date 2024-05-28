@@ -11,9 +11,10 @@ from albumentations import (
     RandomRotate90,
     VerticalFlip,
 )
+from torch.utils.data import ConcatDataset, SequentialSampler
+
 from core.dataset import ColorAugDataset
 from data.xview2.xview2_dataset import PreCachedXview2Building
-from torch.utils.data import ConcatDataset, SequentialSampler
 
 
 def seed_worker(worker_id):
@@ -34,37 +35,37 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
         else:
             transform = self.config.common_transforms
 
-        ## 1. Perform data augmentations { horizontal and vertical flip, rotation of 90·k (k = 1, 2, 3) degree, and scale jitter }
-
+        ## 1. self-pair generated (two 512x512 images)
         if isinstance(self.config.image_dir, (tuple, list)):
             dataset_list = []
             for im_dir, target_dir in zip(
                 self.config.image_dir, self.config.target_dir
             ):
                 dataset_list.append(
-                    ColorAugDataset(
-                        im_dir,
-                        target_dir,
-                        geo_transform=self.config.geo_transforms,
-                        color_transform=self.config.color_transforms,
-                        common_transform=self.config.common_transforms,
+                    PreCachedXview2Building(
+                        im_dir, target_dir, transform, self.config.strategies
                     )
                 )
-                dataset = ConcatDataset(dataset_list)
+
+            dataset = ConcatDataset(dataset_list)
+
         else:
+            dataset = PreCachedXview2Building(
+                self.config.image_dir, self.config.target_dir, transform
+            )
+
+        ## 2.1 Data Augmentatioons (Geometric Transforms, RandomDiscreteScale)
+        ## 2.2 Common Transforms (Normalization)
+        ## 2.3 Convert to Tensor
+        if self.config.training:
             dataset = ColorAugDataset(
-                self.config.image_dir,
-                self.config.target_dir,
+                dataset,
                 geo_transform=self.config.geo_transforms,
                 color_transform=self.config.color_transforms,
                 common_transform=self.config.common_transforms,
             )
 
         print(f"Dataloader length : {len(dataset)}")
-
-        ## 2. Perform Random Cropping into 512x512 pixels for xview2 pre-disaster data
-        if self.config.training:
-            dataset = PreCachedXview2Building(dataset, transform)
 
         print(f"Dataloader length after xview2 : {len(dataset)}")
 

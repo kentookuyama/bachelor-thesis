@@ -34,13 +34,14 @@ log/
 past_run/
 
 LEVIR-CD
+data/xview2/__pycache__
 
 changestartest.sh
 trainxView2_res.txt
 xview2
 core/__pycache__/
 module/__pycache__/changestar.cpython-37.pyc
-data/xview2/__pycache__/xview2_loader.cpython-37.pyc
+
 data/xview2/__pycache__/xview2_dataset.cpython-37.pyc
 core/__pycache__/mixin.cpython-37.pyc
 core/__pycache__/dataset.cpython-37.pyc

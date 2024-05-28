@@ -1,5 +1,6 @@
-from configs.trainxView2 import selfpair_standard
 from ever.module import fpn
+
+from configs.trainxView2 import selfpair_standard
 
 config = dict(
     model=dict(
@@ -46,11 +47,6 @@ config = dict(
                 drop_rate=0.2,
                 t1t2=True,
                 t2t1=True,
-                strategies=dict(
-                    random_crop=False,
-                    semantic_label_inpainting_pair=True,
-                    semantic_label_copy_paste_pair=False,
-                ),
             ),
             loss_config=dict(
                 change=dict(bce=True, weight=0.5, ignore_index=-1),

@@ -1,12 +1,9 @@
-import cv2
 import ever as er
 from albumentations import (
     Compose,
     HorizontalFlip,
     Normalize,
     OneOf,
-    PadIfNeeded,
-    RandomCrop,
     RandomRotate90,
     Resize,
     VerticalFlip,
@@ -34,6 +31,8 @@ data = dict(
                         ],
                         p=0.5,
                     ),
+                    er.preprocess.albu.RandomDiscreteScale([0.75, 1.25, 1.5], p=0.5),
+                    Resize(512, 512),
                 ]
             ),
             color_transforms=None,
@@ -51,6 +50,11 @@ data = dict(
             num_workers=6,
             training=True,
             selfpair=True,
+            strategies=dict(
+                random_crop=False,
+                semantic_label_inpainting_pair=False,
+                semantic_label_copy_paste_pair=True,
+            ),
         ),
     ),
     test=dict(
