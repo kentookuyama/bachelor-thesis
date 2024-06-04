@@ -22,7 +22,6 @@ __pycache__/
 # Ignore pycache files
 *.pyc 
 
-
 # Ignore runs directory
 runs/
 
