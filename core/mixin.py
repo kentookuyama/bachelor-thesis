@@ -6,6 +6,7 @@ import ever as er
 import numpy as np
 import torch
 import torch.nn as nn
+
 from core import field, loss
 from core.head import get_detector
 from FDA.utils import FDA_source_to_target_np
@@ -137,8 +138,7 @@ def random_crop(base_corner, base_mask, helper_corner, helper_mask):
 
 ##### Strategy 2: Inpainting
 def semantic_label_inpainting_pair(base_corner, base_mask, helper_corner, helper_mask):
-    mask = np.array(base_mask.cpu())
-    print(mask.shape)
+    mask = np.array(base_mask)
     # Find connected components in the mask
     _, labels, stats, _ = cv2.connectedComponentsWithStats(
         mask.astype(np.uint8), connectivity=4
@@ -182,8 +182,6 @@ def semantic_label_inpainting_pair(base_corner, base_mask, helper_corner, helper
 
     # Update the mask by removing the selected objects
     updated_mask = np.where(inpaint_mask == 1, 0, mask)
-    inpainted_corner = torch.from_numpy(inpainted_corner)
-    updated_mask = torch.from_numpy(updated_mask)
 
     return base_corner, base_mask, inpainted_corner, updated_mask
 
@@ -207,6 +205,11 @@ def semantic_label_copy_paste_pair(base_corner, base_mask, helper_corner, helper
 
     # Adjust the helper mask accordingly
     blended_mask = base_mask.copy()
+
+    print("base_corner", base_corner.dtype)
+    print("base_mask", base_mask.dtype)
+    print("blended_corner", blended_corner.dtype)
+    print("blended_mask", blended_mask.dtype)
 
     return base_corner, base_mask, blended_corner, blended_mask
 

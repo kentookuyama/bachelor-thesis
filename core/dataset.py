@@ -46,7 +46,7 @@ class ColorAugDataset(Dataset):
             # Apply Geo Transforms
             image_1 = self.geo_transform(
                 **dict(image=base_corner_np, mask=mask1_np)
-            )  # here
+            )
             image_2 = self.geo_transform(**dict(image=helper_corner_np, mask=mask2_np))
 
             # Verify shapes after geo_transform

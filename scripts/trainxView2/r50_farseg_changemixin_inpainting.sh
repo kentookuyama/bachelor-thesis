@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 #SBATCH --job-name trainxView2
-#SBATCH --output=r50_trainxView2_inpainting.txt
+#SBATCH --output=r50_trainxView2_inpainting_%j.txt
 #SBATCH --ntasks=1
 #SBATCH --time=24:00:00
 #SBATCH --gres=gpu:1
@@ -58,6 +58,6 @@ model_dir='./log/changestar_sisup/r50_trainxView2_inpainting'
 
 export LOCAL_RANK=0
 
-torchrun --nproc_per_node=${NUM_GPUS} --master_port 6700 ./train_changemixin.py \
+torchrun --nproc_per_node=${NUM_GPUS} --master_port 6969 ./train_changemixin.py \
   --config_path=${config_path} \
   --model_dir=${model_dir}

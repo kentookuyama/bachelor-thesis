@@ -24,6 +24,7 @@ class PreCachedXview2Building(Dataset):
         ]
         self.transforms = transforms
         self.strategies = strategies
+        print(len(self.image_fps))
 
     def __getitem__(self, idx):
         x = imread(self.image_fps[idx])
@@ -117,19 +118,20 @@ class PreCachedXview2Building(Dataset):
         return strategy_method(base_corner, base_mask, helper_corner, helper_mask)
 
     ##### Strategy 1: Random Crop
-    def random_crop(base_corner, base_mask, helper_corner, helper_mask):
+    def random_crop(self, base_corner, base_mask, helper_corner, helper_mask):
         return base_corner, base_mask, helper_corner, helper_mask
 
     ##### Strategy 2: Inpainting
     def semantic_label_inpainting_pair(
-        base_corner, base_mask, helper_corner, helper_mask
+        self, base_corner, base_mask, helper_corner, helper_mask
     ):
-        mask = np.array(base_mask.cpu())
-        print(mask.shape)
+        """
+
+        TODO  Possibly add a selection process in the corner selection for specific strategies so that it ensures the base_corner is not an empty image?
+        """
+        mask = base_mask.copy()
         # Find connected components in the mask
-        _, labels, stats, _ = cv2.connectedComponentsWithStats(
-            mask.astype(np.uint8), connectivity=4
-        )
+        _, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=4)
 
         # Calculate total image area
         total_area = mask.size
@@ -147,6 +149,14 @@ class PreCachedXview2Building(Dataset):
         eligible_objects = [
             index for index, area in enumerate(object_areas) if area <= threshold_area
         ]
+        print("mask dtype", mask.dtype)
+        print("mask type: ", type(mask))
+        print("Object areas: ", object_areas)
+        print("Eligible objects:", eligible_objects)
+        print("Number of eligible objects:", len(eligible_objects))
+
+        if not eligible_objects:
+            eligible_objects = list(range(len(object_areas)))
 
         # Randomly select objects to inpaint from eligible objects
         num_objects_to_remove = np.random.randint(1, len(eligible_objects) + 1)
@@ -159,6 +169,8 @@ class PreCachedXview2Building(Dataset):
         for index in selected_object_indices:
             inpaint_mask[labels == index + 1] = 1
 
+        print("inpainted_mask dtype", inpaint_mask.dtype)
+
         # Inpainting using OpenCV's inpaint method from TELEA
         inpainted_corner = cv2.inpaint(
             base_corner,
@@ -169,8 +181,6 @@ class PreCachedXview2Building(Dataset):
 
         # Update the mask by removing the selected objects
         updated_mask = np.where(inpaint_mask == 1, 0, mask)
-        inpainted_corner = torch.from_numpy(inpainted_corner)
-        updated_mask = torch.from_numpy(updated_mask)
 
         return base_corner, base_mask, inpainted_corner, updated_mask
 
@@ -213,6 +223,9 @@ class PreCachedXview2Building(Dataset):
 
         # Adjust the helper mask accordingly
         blended_mask = base_mask.copy()
+
+        # TODO Test if conversion of float64 to uint8 using this method improves performance
+        # image = cv2.normalize(src=base_corner_np, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
         return org_corner, org_mask, blended_corner, blended_mask
 
