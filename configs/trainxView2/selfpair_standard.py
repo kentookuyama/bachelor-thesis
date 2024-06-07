@@ -5,7 +5,6 @@ from albumentations import (
     Normalize,
     OneOf,
     RandomRotate90,
-    Resize,
     VerticalFlip,
 )
 
@@ -31,8 +30,9 @@ data = dict(
                         ],
                         p=0.5,
                     ),
-                    er.preprocess.albu.RandomDiscreteScale([0.75, 1.25, 1.5], p=0.5),
-                    Resize(512, 512),
+                    er.preprocess.albu.RandomDiscreteScale(
+                        [0.75, 1.25, 1.5], p=0.5, always_apply=True
+                    ),
                 ]
             ),
             color_transforms=None,
@@ -43,7 +43,6 @@ data = dict(
                         std=(0.229, 0.224, 0.225),
                         max_pixel_value=255,
                     ),
-                    er.preprocess.albu.ToTensor(),
                 ]
             ),
             batch_size=10,
@@ -53,7 +52,7 @@ data = dict(
             strategies=dict(
                 random_crop=False,
                 semantic_label_inpainting_pair=False,
-                semantic_label_copy_paste_pair=True,
+                semantic_label_copy_paste_pair=False,
             ),
         ),
     ),

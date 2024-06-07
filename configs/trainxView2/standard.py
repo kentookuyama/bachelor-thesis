@@ -32,6 +32,7 @@ data = dict(
                         p=0.5,
                     ),
                     er.preprocess.albu.RandomDiscreteScale([0.75, 1.25, 1.5], p=0.5),
+                    RandomCrop(512, 512, True),
                 ]
             ),
             color_transforms=None,

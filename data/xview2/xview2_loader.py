@@ -30,8 +30,9 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
 
     @property
     def dataloader_params(self):
+        strategies = getattr(self.config, "strategies", None)
         if self.config.training:
-            transform = None
+            transform = self.config.geo_transforms
         else:
             transform = self.config.common_transforms
 
@@ -42,9 +43,7 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
                 self.config.image_dir, self.config.target_dir
             ):
                 dataset_list.append(
-                    PreCachedXview2Building(
-                        im_dir, target_dir, transform, self.config.strategies
-                    )
+                    PreCachedXview2Building(im_dir, target_dir, transform, strategies)
                 )
 
             dataset = ConcatDataset(dataset_list)
@@ -57,17 +56,14 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
         ## 2.1 Data Augmentatioons (Geometric Transforms, RandomDiscreteScale)
         ## 2.2 Common Transforms (Normalization)
         ## 2.3 Convert to Tensor
+        # Geo_tranforsm none if self-pair
         if self.config.training:
             dataset = ColorAugDataset(
                 dataset,
-                geo_transform=self.config.geo_transforms,
+                geo_transform=None,
                 color_transform=self.config.color_transforms,
                 common_transform=self.config.common_transforms,
             )
-
-        print(f"Dataloader length : {len(dataset)}")
-
-        print(f"Dataloader length after xview2 : {len(dataset)}")
 
         if self.config.CV.on and self.config.CV.cur_k != -1:
             train_sampler, val_sampler = er.data.make_CVSamplers(
@@ -87,7 +83,6 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
                 if self.config.training
                 else SequentialSampler(dataset)
             )
-        print("done")
         return dict(
             dataset=dataset,
             batch_size=self.config.batch_size,
