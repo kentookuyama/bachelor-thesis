@@ -11,10 +11,9 @@ from albumentations import (
     RandomRotate90,
     VerticalFlip,
 )
-from torch.utils.data import ConcatDataset, SequentialSampler
-
 from core.dataset import ColorAugDataset
 from data.xview2.xview2_dataset import PreCachedXview2Building
+from torch.utils.data import ConcatDataset, SequentialSampler
 
 
 def seed_worker(worker_id):
@@ -31,8 +30,12 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
     @property
     def dataloader_params(self):
         strategies = getattr(self.config, "strategies", None)
+        print("strategies", strategies)
         if self.config.training:
-            transform = self.config.geo_transforms
+            if self.config.selfpair:
+                transform = self.config.geo_transforms
+            else:
+                transform = None
         else:
             transform = self.config.common_transforms
 
@@ -43,14 +46,16 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
                 self.config.image_dir, self.config.target_dir
             ):
                 dataset_list.append(
-                    PreCachedXview2Building(im_dir, target_dir, transform, strategies)
+                    PreCachedXview2Building(
+                        im_dir, target_dir, transform, strategies
+                    )  # Change from transforms -> None
                 )
 
             dataset = ConcatDataset(dataset_list)
 
         else:
             dataset = PreCachedXview2Building(
-                self.config.image_dir, self.config.target_dir, transform
+                self.config.image_dir, self.config.target_dir, transform, strategies
             )
 
         ## 2.1 Data Augmentatioons (Geometric Transforms, RandomDiscreteScale)
@@ -58,9 +63,10 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
         ## 2.3 Convert to Tensor
         # Geo_tranforsm none if self-pair
         if self.config.training:
+            blob = self.config.geo_transforms if not self.config.selfpair else None
             dataset = ColorAugDataset(
                 dataset,
-                geo_transform=None,
+                geo_transform=blob,
                 color_transform=self.config.color_transforms,
                 common_transform=self.config.common_transforms,
             )

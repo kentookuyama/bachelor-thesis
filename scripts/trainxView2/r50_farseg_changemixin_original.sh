@@ -60,4 +60,4 @@ export LOCAL_RANK=0
 
 torchrun --nproc_per_node=${NUM_GPUS} ./train_changemixin.py \
   --config_path=${config_path} \
-  --model_dir=${model_dir}
+  --model_dir=${model_dir}rel

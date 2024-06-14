@@ -1,6 +1,16 @@
 from configs.trainxView2 import selfpair_standard
 from ever.module import fpn
 
+# Strategies for inpainting
+strategies = dict(
+    random_crop=True,
+    semantic_label_inpainting_pair=True,
+    semantic_label_copy_paste_pair=False,
+)
+
+# Include the Strategies above to selfpair_standard
+selfpair_standard.data["train"]["params"]["strategies"].update(strategies)
+
 config = dict(
     model=dict(
         type="ChangeStar",

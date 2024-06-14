@@ -1,3 +1,4 @@
+import cv2
 import ever as er
 from albumentations import (
     Compose,
@@ -5,6 +6,7 @@ from albumentations import (
     Normalize,
     OneOf,
     RandomRotate90,
+    Resize,
     VerticalFlip,
 )
 
@@ -33,6 +35,7 @@ data = dict(
                     er.preprocess.albu.RandomDiscreteScale(
                         [0.75, 1.25, 1.5], p=0.5, always_apply=True
                     ),
+                    # Resize(512, 512),
                 ]
             ),
             color_transforms=None,
@@ -46,7 +49,7 @@ data = dict(
                 ]
             ),
             batch_size=10,
-            num_workers=6,
+            num_workers=4,
             training=True,
             selfpair=True,
             strategies=dict(

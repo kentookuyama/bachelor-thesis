@@ -1,9 +1,8 @@
 import numpy
 import torch
-from torch.utils.data import Dataset
-
 from core import field
 from core.customtensor import CustomTensor
+from torch.utils.data import Dataset
 
 
 class ColorAugDataset(Dataset):

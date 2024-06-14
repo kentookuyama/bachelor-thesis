@@ -58,6 +58,6 @@ model_dir='./log/changestar_sisup/r50_trainxView2_mix'
 
 export LOCAL_RANK=0
 
-torchrun --nproc_per_node=${NUM_GPUS} ./train_changemixin.py \
+torchrun --nproc_per_node=${NUM_GPUS} --master_port 6969 ./train_changemixin.py \
   --config_path=${config_path} \
   --model_dir=${model_dir}
