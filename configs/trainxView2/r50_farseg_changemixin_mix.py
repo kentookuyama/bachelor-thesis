@@ -1,5 +1,6 @@
-from configs.trainxView2 import selfpair_standard
 from ever.module import fpn
+
+from configs.trainxView2 import selfpair_standard
 
 # Strategies for inpainting
 strategies = dict(

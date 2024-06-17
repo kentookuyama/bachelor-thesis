@@ -8,11 +8,12 @@ import torch
 
 # from albumentations import Compose, HorizontalFlip, RandomCrop, RandomRotate90
 from albumentations import *
-from core import field
-from FDA.utils import FDA_source_to_target_np
 from PIL import Image
 from skimage.io import imread
 from torch.utils.data import Dataset
+
+from core import field
+from FDA.utils import FDA_source_to_target_np
 
 
 class PreCachedXview2Building(Dataset):
@@ -35,9 +36,6 @@ class PreCachedXview2Building(Dataset):
         mask = imread(self.target_fps[idx])
         y = dict()
 
-        self.check_data(x, np.uint8, (1024, 1024, 3))
-        self.check_data(mask, np.uint8, (1024, 1024))
-
         y[field.MASK1] = mask
         y["image_filename"] = os.path.basename(self.image_fps[idx])
 
@@ -46,8 +44,6 @@ class PreCachedXview2Building(Dataset):
 
         if self.transforms:
             x, y[field.MASK1] = self.apply_transforms(x, y[field.MASK1])
-
-        # img uint8 mask uint8
 
         return self.split_image(x, y)
 
@@ -59,15 +55,16 @@ class PreCachedXview2Building(Dataset):
 
     def apply_transforms(self, image, mask):
         """Applies the transforms to the image and mask"""
-        image = image.astype(np.float32)
+        image = (
+            image.astype(np.float32) / 255.0
+        )  # Convert to float32 here for albumentations
         mask = mask
+
+        self.check_data(image, np.float32, (1024, 1024, 3))
 
         augmented = self.transforms(**dict(image=image, mask=mask))
         mask = augmented["mask"]
         image = augmented["image"]
-
-        # self.check_data(image, np.float32, (1024, 1024, 3))
-        # self.check_data(mask, np.float32, (1024, 1024))
 
         # scale_factor = np.random.choice([0.75, 1.25, 1.5])
         # image = cv2.resize(
@@ -113,7 +110,6 @@ class PreCachedXview2Building(Dataset):
         }
 
         enabled_strategies = [key for key, value in self.strategies.items() if value]
-
         selected_strategy = random.choice(enabled_strategies)
         strategy_method = available_strategies[selected_strategy]
 
@@ -122,7 +118,6 @@ class PreCachedXview2Building(Dataset):
         h, w, _ = img.shape
 
         if (h, w) == (768, 768):
-            # Handle 768x768 images by first splitting into 4 corners of 512x512
             mid_h, mid_w = 512, 512
 
             base_corner, base_mask, helper_corner, helper_mask = self.corner_selection(
@@ -150,55 +145,37 @@ class PreCachedXview2Building(Dataset):
                 helper_corner, helper_mask, [RandomCrop(512, 512, always_apply=True)]
             )
 
+        self.check_data(base_corner, np.float32, (512, 512, 3))
+        self.check_data(helper_corner, np.float32, (512, 512, 3))
+
         # Convert back to uint8
         base_corner = (
             cv2.normalize(
                 base_corner,
                 None,
-                base_corner.max(),
-                base_corner.min(),
+                255,
+                0,
                 cv2.NORM_MINMAX,
                 cv2.CV_8U,
             )
             if base_corner.dtype != np.uint8
             else base_corner
         )
-        base_mask = (
-            cv2.normalize(
-                base_mask,
-                None,
-                base_mask.max(),
-                base_mask.min(),
-                cv2.NORM_MINMAX,
-                cv2.CV_8U,
-            )
-            if base_mask.dtype != np.uint8
-            else base_mask
-        )
         helper_corner = (
             cv2.normalize(
                 helper_corner,
                 None,
-                helper_corner.max(),
-                helper_corner.min(),
+                255,
+                0,
                 cv2.NORM_MINMAX,
                 cv2.CV_8U,
             )
             if helper_corner.dtype != np.uint8
             else helper_corner
         )
-        helper_mask = (
-            cv2.normalize(
-                helper_mask,
-                None,
-                helper_mask.max(),
-                helper_mask.min(),
-                cv2.NORM_MINMAX,
-                cv2.CV_8U,
-            )
-            if helper_mask.dtype != np.uint8
-            else helper_mask
-        )
+
+        self.check_data(base_corner, np.uint8, (512, 512, 3))
+        self.check_data(helper_corner, np.uint8, (512, 512, 3))
 
         # Apply selected strategy method
         base_corner, base_mask, helper_corner, helper_mask = strategy_method(
@@ -224,33 +201,13 @@ class PreCachedXview2Building(Dataset):
         return augmented["image"], augmented["mask"]
 
     def corner_selection(self, img, mask, mid_w, mid_h, strategy):
-        img = cv2.normalize(
-            img,
-            None,
-            img.max(),
-            img.min(),
-            cv2.NORM_MINMAX,
-            cv2.CV_8U,
-        )
-        # Corners: a=top-left, b=top-right, c=bottom-left, d=bottom-right
-        corner_a = img[:mid_h, :mid_w, :]
-        corner_b = img[:mid_h, -mid_w:, :]
-        corner_c = img[-mid_h:, :mid_w, :]
-        corner_d = img[-mid_h:, -mid_w:, :]
-
-        # Masks for each corner
-        mask_a = mask[:mid_h, :mid_w]
-        mask_b = mask[:mid_h, -mid_w:]
-        mask_c = mask[-mid_h:, :mid_w]
-        mask_d = mask[-mid_h:, -mid_w:]
-
         corners = {
-            "a": (corner_a, mask_a),
-            "b": (corner_b, mask_b),
-            "c": (corner_c, mask_c),
-            "d": (corner_d, mask_d),
+            "a": (img[:mid_h, :mid_w], mask[:mid_h, :mid_w]),
+            "b": (img[:mid_h, -mid_w:], mask[:mid_h, -mid_w:]),
+            "c": (img[-mid_h:, :mid_w], mask[-mid_h:, :mid_w]),
+            "d": (img[-mid_h:, -mid_w:], mask[-mid_h:, -mid_w:]),
         }
-        # Additional logic based on selected strategy
+
         if strategy == "semantic_label_inpainting_pair":
             base_corner_key, helper_corner_key = self.non_empty_corners(corners)
 
@@ -260,32 +217,13 @@ class PreCachedXview2Building(Dataset):
         else:
             base_corner_key, helper_corner_key = self.non_empty_corners(corners)
 
-        # Obtain base corner and helper corner based on the selected keys
         base_corner, base_mask = corners[base_corner_key]
         helper_corner, helper_mask = corners[helper_corner_key]
 
-        ###################################################################
-        # img_mean = np.mean(img, axis=(0, 1))
-        # img_std = np.std(img, axis=(0, 1))
-
-        # is_similar_magnitude_base = self.check_scale_after_splitting(
-        #     img_mean,
-        #     img_std,
-        #     corners[base_corner_key][0],
-        # )
-        # is_similar_magnitude_helper = self.check_scale_after_splitting(
-        #     img_mean,
-        #     img_std,
-        #     corners[helper_corner_key][0],
-        # )
-        # if not is_similar_magnitude_base or not is_similar_magnitude_helper:
-        #     print("Scale not similar after splitting")
-        ###################################################################
-
         return (
-            base_corner.astype(np.float32),
+            base_corner,
             base_mask,
-            helper_corner.astype(np.float32),
+            helper_corner,
             helper_mask,
         )
 
@@ -338,9 +276,6 @@ class PreCachedXview2Building(Dataset):
 
     ##### Strategy 1: Random Crop
     def random_crop(self, base_corner, base_mask, helper_corner, helper_mask):
-        return self.random_rotation(base_corner, base_mask, helper_corner, helper_mask)
-
-    def random_rotation(self, base_corner, base_mask, helper_corner, helper_mask):
         random_rotate = RandomRotate90(True)
         rotated_image = random_rotate(image=helper_corner, mask=helper_mask)
         return base_corner, base_mask, rotated_image["image"], rotated_image["mask"]
@@ -384,15 +319,15 @@ class PreCachedXview2Building(Dataset):
         )
 
         # Create a binary mask for inpainting
-        inpaint_mask = np.zeros_like(base_mask)
+        inpaint_mask = np.zeros_like(base_mask, dtype=np.uint8)
         for index in selected_object_indices:
             inpaint_mask[labels == index + 1] = 1
 
         # Inpainting using OpenCV's inpaint method from TELEA
         inpainted_corner = cv2.inpaint(
             base_corner,
-            inpaint_mask.astype(np.uint8),
-            inpaintRadius=25,
+            inpaint_mask,
+            inpaintRadius=10,
             flags=cv2.INPAINT_TELEA,
         )
 
@@ -420,8 +355,6 @@ class PreCachedXview2Building(Dataset):
         Returns:
             tuple: Original corner and mask, blended corner and mask.
         """
-        # Copy the original base corner and mask
-        org_corner, org_mask = base_corner.copy(), base_mask.copy()
 
         # Get eligible objects from the helper_corner
         helper_eligible_objects, helper_labels = self.eligible_image(helper_mask)
@@ -432,33 +365,33 @@ class PreCachedXview2Building(Dataset):
             if self.skipped_amount % 200 == 0:
                 print(f"Skipped {self.skipped_amount} times.")
             return self.random_crop(base_corner, base_mask, helper_corner, helper_mask)
+        # Copy the original base corner and mask
+        org_corner, org_mask = base_corner.copy(), base_mask.copy()
 
         # Create Binary mask for inpainting eligible objects from the helper mask
         inpaint_mask = np.zeros_like(base_mask)
         for obj_index in helper_eligible_objects:
             inpaint_mask[helper_labels == obj_index + 1] = 1
 
-        # Get the indices of non-background pixels in the helper mask
-        helper_indices = np.argwhere(inpaint_mask != 0)
+            # Vectorized approach to copy and paste
+            base_corner[inpaint_mask == 1] = helper_corner[inpaint_mask == 1]
+            base_mask[inpaint_mask == 1] = helper_mask[inpaint_mask == 1]
 
         # Iterate over each non-background pixel in the helper mask
-        for idx in helper_indices:
-            x, y = idx
+        # for idx in helper_indices:
+        #     x, y = idx
 
-            # Copy pixel from helper to base if within bounds
-            if 0 <= x < base_mask.shape[0] and 0 <= y < base_mask.shape[1]:
-                base_corner[x, y, :] = helper_corner[x, y, :]
-                base_mask[x, y] = helper_mask[x, y]
+        #     # Copy pixel from helper to base if within bounds
+        #     if 0 <= x < base_mask.shape[0] and 0 <= y < base_mask.shape[1]:
+        #         base_corner[x, y, :] = helper_corner[x, y, :]
+        #         base_mask[x, y] = helper_mask[x, y]
 
         # Apply Fourier transform based blending
         blended_corner = self.fourier_blending(base_corner, helper_corner)
 
-        # Adjust the helper mask accordingly
-        blended_mask = base_mask.copy()
+        return org_corner, org_mask, blended_corner, base_mask
 
-        return org_corner, org_mask, blended_corner, blended_mask
-
-    def fourier_blending(self, source_image, target_image, L=0.0005):
+    def fourier_blending(self, source_image, target_image, L=0.001):
         """
         Applies Fourier Domain Adaptation (FDA) to blend the source image with the target image.
 
@@ -494,11 +427,6 @@ class PreCachedXview2Building(Dataset):
             norm_type=cv2.NORM_MINMAX,
             dtype=cv2.CV_8U,
         )
-
-        if np.any((src_in_tar > 255) | (src_in_tar < 0)):
-            raise ValueError(
-                f"Expected no overflows but got {np.max(src_in_tar)}{np.min(src_in_tar)}"
-            )
         return src_in_tar
 
     ### Helper methods for data augmentation
@@ -518,16 +446,8 @@ class PreCachedXview2Building(Dataset):
                 raise ValueError(
                     f"Expected no overflows but got {np.max(x)}{np.min(x)}"
                 )
-
-    def check_scale_after_splitting(
-        self, original_mean, original_std, corner_data, threshold=0.3
-    ):
-        corner_mean = np.mean(corner_data, axis=(0, 1))
-        corner_std = np.std(corner_data, axis=(0, 1))
-
-        # Check if absolute difference in mean and standard deviation is within threshold of original values
-        is_similar_magnitude = np.all(
-            abs(original_mean - corner_mean) < threshold * original_mean
-        ) and np.all(abs(original_std - corner_std) < threshold * original_std)
-
-        return is_similar_magnitude
+        if expected_dtype == np.float32:
+            if np.any((x > 1) | (x < 0)):
+                raise ValueError(
+                    f"Expected no overflows but got {np.max(x)}{np.min(x)}"
+                )

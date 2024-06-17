@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 #SBATCH --job-name trainxView2
-#SBATCH --output=r50_trainxView2_original_%j.txt
+#SBATCH --original_%j.txt
 #SBATCH --ntasks=1
 #SBATCH --time=24:00:00
 #SBATCH --gres=gpu:1
