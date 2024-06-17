@@ -1,3 +1,4 @@
+import cv2
 import numpy
 import torch
 from core import field
@@ -82,8 +83,6 @@ class ColorAugDataset(Dataset):
                     helper_corner_np,
                     mask2_np,
                 )
-
-            # uint8 (512,512,3) npdarray
 
             # x, mask -> tensor (common Transforms)
             image_1 = self.common_transform(image=image_1_img, mask=image_1_mask)
