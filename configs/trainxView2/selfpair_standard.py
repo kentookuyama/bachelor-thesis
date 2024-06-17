@@ -1,4 +1,3 @@
-import cv2
 import ever as er
 from albumentations import (
     Compose,
@@ -6,7 +5,6 @@ from albumentations import (
     Normalize,
     OneOf,
     RandomRotate90,
-    Resize,
     VerticalFlip,
 )
 
@@ -44,7 +42,6 @@ data = dict(
                     Normalize(
                         mean=(0.485, 0.456, 0.406),
                         std=(0.229, 0.224, 0.225),
-                        max_pixel_value=255,
                     ),
                 ]
             ),
