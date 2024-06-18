@@ -174,9 +174,6 @@ class PreCachedXview2Building(Dataset):
             else helper_corner
         )
 
-        self.check_data(base_corner, np.uint8, (512, 512, 3))
-        self.check_data(helper_corner, np.uint8, (512, 512, 3))
-
         # Apply selected strategy method
         base_corner, base_mask, helper_corner, helper_mask = strategy_method(
             base_corner, base_mask, helper_corner, helper_mask
@@ -355,43 +352,30 @@ class PreCachedXview2Building(Dataset):
         Returns:
             tuple: Original corner and mask, blended corner and mask.
         """
-
-        # Get eligible objects from the helper_corner
         helper_eligible_objects, helper_labels = self.eligible_image(helper_mask)
 
-        # If object sizes are larger than 30% in image size and no objects are eligible, use random_crop
         if not helper_eligible_objects:
             self.skipped_amount += 1
             if self.skipped_amount % 200 == 0:
                 print(f"Skipped {self.skipped_amount} times.")
             return self.random_crop(base_corner, base_mask, helper_corner, helper_mask)
-        # Copy the original base corner and mask
+
         org_corner, org_mask = base_corner.copy(), base_mask.copy()
 
-        # Create Binary mask for inpainting eligible objects from the helper mask
         inpaint_mask = np.zeros_like(base_mask)
         for obj_index in helper_eligible_objects:
             inpaint_mask[helper_labels == obj_index + 1] = 1
 
-            # Vectorized approach to copy and paste
-            base_corner[inpaint_mask == 1] = helper_corner[inpaint_mask == 1]
-            base_mask[inpaint_mask == 1] = helper_mask[inpaint_mask == 1]
-
-        # Iterate over each non-background pixel in the helper mask
-        # for idx in helper_indices:
-        #     x, y = idx
-
-        #     # Copy pixel from helper to base if within bounds
-        #     if 0 <= x < base_mask.shape[0] and 0 <= y < base_mask.shape[1]:
-        #         base_corner[x, y, :] = helper_corner[x, y, :]
-        #         base_mask[x, y] = helper_mask[x, y]
+        # Vectorized approach to copy and paste
+        base_corner[inpaint_mask == 1] = helper_corner[inpaint_mask == 1]
+        base_mask[inpaint_mask == 1] = helper_mask[inpaint_mask == 1]
 
         # Apply Fourier transform based blending
         blended_corner = self.fourier_blending(base_corner, helper_corner)
 
         return org_corner, org_mask, blended_corner, base_mask
 
-    def fourier_blending(self, source_image, target_image, L=0.001):
+    def fourier_blending(self, source_image, target_image, L=0.0005):
         """
         Applies Fourier Domain Adaptation (FDA) to blend the source image with the target image.
 
@@ -411,7 +395,7 @@ class PreCachedXview2Building(Dataset):
         source_image = source_image.transpose((2, 0, 1))
         target_image = target_image.transpose((2, 0, 1))
 
-        # Apply FDA_source_to_target_np (input float32)
+        # Apply FDA_source_to_target_np (input uint8)
         src_in_tar = FDA_source_to_target_np(source_image, target_image, L=L)
         # Output float64
 

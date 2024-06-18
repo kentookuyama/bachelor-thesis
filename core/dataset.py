@@ -1,8 +1,9 @@
 import numpy
 import torch
+from torch.utils.data import Dataset
+
 from core import field
 from core.customtensor import CustomTensor
-from torch.utils.data import Dataset
 
 
 class ColorAugDataset(Dataset):
@@ -82,8 +83,6 @@ class ColorAugDataset(Dataset):
                     helper_corner_np,
                     mask2_np,
                 )
-
-            # uint8 (512,512,3) npdarray
 
             # x, mask -> tensor (common Transforms)
             image_1 = self.common_transform(image=image_1_img, mask=image_1_mask)

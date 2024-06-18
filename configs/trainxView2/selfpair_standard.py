@@ -89,7 +89,7 @@ optimizer = dict(
 learning_rate = dict(
     type="poly",
     params=dict(
-        base_lr=0.03 * (data["train"]["params"]["batch_size"] / 16),
+        base_lr=0.03,  # * (data["train"]["params"]["batch_size"] / 16)
         power=0.9,
         max_iters=40000,
     ),
