@@ -111,7 +111,6 @@ class ColorAugDataset(Dataset):
 
             # float32 (3,512,512) tensor
 
-            # Ensure both images|masks are tensors
             if (
                 not isinstance(image_1_img, torch.Tensor)
                 or not isinstance(image_1_mask, torch.Tensor)
@@ -120,7 +119,6 @@ class ColorAugDataset(Dataset):
             ):
                 raise TypeError("Expected x and y to be PyTorch tensors")
 
-            # Set data to dataset form required for ChangeMixin
             org_img = torch.cat([image_1_img, image_2_img], dim=0)
             y[field.MASK1] = image_1_mask
             y[field.VMASK2] = image_2_mask

@@ -5,9 +5,13 @@ import random
 import cv2
 import numpy as np
 import torch
-
-# from albumentations import Compose, HorizontalFlip, RandomCrop, RandomRotate90
-from albumentations import *
+from albumentations import (
+    Compose,
+    CropNonEmptyMaskIfExists,
+    HorizontalFlip,
+    RandomCrop,
+    RandomRotate90,
+)
 from PIL import Image
 from skimage.io import imread
 from torch.utils.data import Dataset
@@ -60,7 +64,7 @@ class PreCachedXview2Building(Dataset):
         )  # Convert to float32 here for albumentations
         mask = mask
 
-        self.check_data(image, np.float32, (1024, 1024, 3))
+        self.check_data(image)
 
         augmented = self.transforms(**dict(image=image, mask=mask))
         mask = augmented["mask"]
@@ -109,8 +113,14 @@ class PreCachedXview2Building(Dataset):
             "semantic_label_copy_paste_pair": self.semantic_label_copy_paste_pair,
         }
 
-        enabled_strategies = [key for key, value in self.strategies.items() if value]
-        selected_strategy = random.choice(enabled_strategies)
+        if self.large_transparent_region(x):
+            selected_strategy = "random_crop"
+        else:
+            enabled_strategies = [
+                key for key, value in self.strategies.items() if value
+            ]
+            selected_strategy = random.choice(enabled_strategies)
+
         strategy_method = available_strategies[selected_strategy]
 
         img = x
@@ -139,22 +149,28 @@ class PreCachedXview2Building(Dataset):
             )
 
             base_corner, base_mask = self.apply_transformations(
-                base_corner, base_mask, [RandomCrop(512, 512, always_apply=True)]
+                base_corner,
+                base_mask,
+                [CropNonEmptyMaskIfExists(512, 512, always_apply=True)],
             )
             helper_corner, helper_mask = self.apply_transformations(
-                helper_corner, helper_mask, [RandomCrop(512, 512, always_apply=True)]
+                helper_corner,
+                helper_mask,
+                [CropNonEmptyMaskIfExists(512, 512, always_apply=True)],
             )
 
-        self.check_data(base_corner, np.float32, (512, 512, 3))
-        self.check_data(helper_corner, np.float32, (512, 512, 3))
+        # Apply selected strategy method
+        base_corner, base_mask, helper_corner, helper_mask = strategy_method(
+            base_corner, base_mask, helper_corner, helper_mask
+        )
 
         # Convert back to uint8
         base_corner = (
             cv2.normalize(
                 base_corner,
                 None,
-                255,
-                0,
+                np.round(base_corner.max() * 255),
+                np.round(base_corner.min() * 255),
                 cv2.NORM_MINMAX,
                 cv2.CV_8U,
             )
@@ -165,8 +181,8 @@ class PreCachedXview2Building(Dataset):
             cv2.normalize(
                 helper_corner,
                 None,
-                255,
-                0,
+                np.round(helper_corner.max() * 255),
+                np.round(helper_corner.min() * 255),
                 cv2.NORM_MINMAX,
                 cv2.CV_8U,
             )
@@ -174,10 +190,8 @@ class PreCachedXview2Building(Dataset):
             else helper_corner
         )
 
-        # Apply selected strategy method
-        base_corner, base_mask, helper_corner, helper_mask = strategy_method(
-            base_corner, base_mask, helper_corner, helper_mask
-        )
+        self.check_data(base_corner)
+        self.check_data(helper_corner)
 
         y[field.MASK1] = base_mask
         y[field.VMASK2] = helper_mask
@@ -204,13 +218,8 @@ class PreCachedXview2Building(Dataset):
             "c": (img[-mid_h:, :mid_w], mask[-mid_h:, :mid_w]),
             "d": (img[-mid_h:, -mid_w:], mask[-mid_h:, -mid_w:]),
         }
-
-        if strategy == "semantic_label_inpainting_pair":
-            base_corner_key, helper_corner_key = self.non_empty_corners(corners)
-
-        elif strategy == "semantic_label_copy_paste_pair":
+        if strategy == "semantic_label_copy_paste_pair":
             helper_corner_key, base_corner_key = self.non_empty_corners(corners)
-
         else:
             base_corner_key, helper_corner_key = self.non_empty_corners(corners)
 
@@ -226,7 +235,7 @@ class PreCachedXview2Building(Dataset):
 
     def non_empty_corners(self, corners):
         non_empty_corner = [
-            key for key, (corner, mask) in corners.items() if np.sum(mask) > 0
+            key for key, (_, mask) in corners.items() if np.sum(mask) > 0
         ]
 
         if non_empty_corner:
@@ -309,29 +318,29 @@ class PreCachedXview2Building(Dataset):
                 print(f"Skipped {self.skipped_amount} times.")
             return self.random_crop(base_corner, base_mask, helper_corner, helper_mask)
 
-        # Randomly select objects to inpaint from eligible objects
         num_objects_to_remove = np.random.randint(1, len(eligible_objects) + 1)
         selected_object_indices = np.random.choice(
             eligible_objects, num_objects_to_remove, replace=False
         )
 
-        # Create a binary mask for inpainting
         inpaint_mask = np.zeros_like(base_mask, dtype=np.uint8)
         for index in selected_object_indices:
             inpaint_mask[labels == index + 1] = 1
 
+        blob = (base_corner * 255).round().astype(np.uint8)
+
         # Inpainting using OpenCV's inpaint method from TELEA
         inpainted_corner = cv2.inpaint(
-            base_corner,
+            blob,
             inpaint_mask,
-            inpaintRadius=10,
+            inpaintRadius=25,
             flags=cv2.INPAINT_TELEA,
         )
 
         # Update the mask by removing the selected objects
         updated_mask = np.where(inpaint_mask == 1, 0, base_mask)
 
-        return base_corner, base_mask, inpainted_corner, updated_mask
+        return inpainted_corner, updated_mask, base_corner, base_mask
 
     ##### Strategy 3: copy & paste + Fourier blending
     def semantic_label_copy_paste_pair(
@@ -355,14 +364,15 @@ class PreCachedXview2Building(Dataset):
         helper_eligible_objects, helper_labels = self.eligible_image(helper_mask)
 
         if not helper_eligible_objects:
+            print("here")
             self.skipped_amount += 1
             if self.skipped_amount % 200 == 0:
                 print(f"Skipped {self.skipped_amount} times.")
             return self.random_crop(base_corner, base_mask, helper_corner, helper_mask)
 
         org_corner, org_mask = base_corner.copy(), base_mask.copy()
-
         inpaint_mask = np.zeros_like(base_mask)
+
         for obj_index in helper_eligible_objects:
             inpaint_mask[helper_labels == obj_index + 1] = 1
 
@@ -371,11 +381,11 @@ class PreCachedXview2Building(Dataset):
         base_mask[inpaint_mask == 1] = helper_mask[inpaint_mask == 1]
 
         # Apply Fourier transform based blending
-        blended_corner = self.fourier_blending(base_corner, helper_corner)
+        blended_corner = self.fourier_blending(base_corner, helper_corner, inpaint_mask)
 
         return org_corner, org_mask, blended_corner, base_mask
 
-    def fourier_blending(self, source_image, target_image, L=0.0005):
+    def fourier_blending(self, source_image, target_image, inpaint_mask, L=0.01):
         """
         Applies Fourier Domain Adaptation (FDA) to blend the source image with the target image.
 
@@ -394,44 +404,35 @@ class PreCachedXview2Building(Dataset):
         # Ensure source and target images are in the same format
         source_image = source_image.transpose((2, 0, 1))
         target_image = target_image.transpose((2, 0, 1))
+        inpaint_mask = inpaint_mask[np.newaxis, :, :]
 
         # Apply FDA_source_to_target_np (input uint8)
-        src_in_tar = FDA_source_to_target_np(source_image, target_image, L=L)
+        src_in_tar = FDA_source_to_target_np(
+            source_image, target_image, inpaint_mask, L=L
+        )
         # Output float64
 
         # Transpose back to (H, W, C) format
         src_in_tar = src_in_tar.transpose((1, 2, 0))
-
-        # Convert Float64 to Uint8
-        src_in_tar = cv2.normalize(
-            src=src_in_tar,
-            dst=None,
-            alpha=0,
-            beta=255,
-            norm_type=cv2.NORM_MINMAX,
-            dtype=cv2.CV_8U,
-        )
         return src_in_tar
 
     ### Helper methods for data augmentation
     def check_data(
         self,
         x,
-        expected_dtype,
-        expected_shape,
     ):
-        """dtype, channel mean/max/min, overflows, geometric alignment"""
-        if x.dtype != expected_dtype:
-            raise ValueError(f"Expected dtype {expected_dtype} but got {x.dtype}")
-        if x.shape != expected_shape:
-            raise ValueError(f"Expected shape {expected_shape} but got {x.shape}")
-        if expected_dtype == np.uint8:
+        if x.dtype == np.uint8:
             if np.any((x > 255) | (x < 0)):
                 raise ValueError(
                     f"Expected no overflows but got {np.max(x)}{np.min(x)}"
                 )
-        if expected_dtype == np.float32:
+        if x.dtype == np.float32:
             if np.any((x > 1) | (x < 0)):
                 raise ValueError(
                     f"Expected no overflows but got {np.max(x)}{np.min(x)}"
                 )
+
+    def large_transparent_region(self, image, area_threshhold=0.15):
+        black_ratio = np.mean(np.all(image == 0, axis=2))
+
+        return black_ratio > area_threshhold

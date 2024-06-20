@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-#SBATCH --job-name FullStrategies
-#SBATCH --output=all_strategies_%j.txt
+#SBATCH --job-name CopyPaste_FDA
+#SBATCH --output=copy_paste_FDA_CHANGE_%j.txt
 #SBATCH --ntasks=1
-#SBATCH --time=36:00:00
+#SBATCH --time=24:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --mincpus=8
 
@@ -53,11 +53,11 @@ for path in "${!dirs[@]}"; do
 done
 
 # Run your specific script
-config_path='trainxView2.r50_farseg_changemixin_full'
-model_dir='./log/changestar_sisup/r50_farseg_changemixin_full'
+config_path='trainxView2.r50_farseg_changemixin_copy_paste'
+model_dir='./log/changestar_sisup/r50_trainxView2_copy_paste_FDA_CHANGE'
 
 export LOCAL_RANK=0
 
-torchrun --nproc_per_node=${NUM_GPUS} --master_port=29506 ./train_changemixin.py \
+torchrun --nproc_per_node=${NUM_GPUS} --master_port=29508 ./train_changemixin.py \
   --config_path=${config_path} \
   --model_dir=${model_dir}
