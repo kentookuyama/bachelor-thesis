@@ -84,24 +84,30 @@ class ColorAugDataset(Dataset):
                     mask2_np,
                 )
 
-            # x, mask -> tensor (common Transforms)
-            image_1 = self.common_transform(image=image_1_img, mask=image_1_mask)
-            image_2 = self.common_transform(image=image_2_img, mask=image_2_mask)
+            if self.color_transform:
+                image_1_img, image_1_mask = self.apply_transform(
+                    self.color_transform, image_1_img, image_1_mask
+                )
+                image_2_img, image_2_mask = self.apply_transform(
+                    self.color_transform, image_2_img, image_2_mask
+                )
 
-            image_1_img = image_1["image"]
-            image_1_mask = image_1["mask"]
-            image_2_img = image_2["image"]
-            image_2_mask = image_2["mask"]
+            # x, mask -> tensor (common Transforms)
+            image_1_img, image_1_mask = self.apply_transform(
+                self.common_transform, image_1_img, image_1_mask
+            )
+            image_2_img, image_2_mask = self.apply_transform(
+                self.common_transform, image_2_img, image_2_mask
+            )
 
             # Convert to tensor
             to_tensor = CustomTensor()
-            image_1 = to_tensor(image=image_1_img, mask=image_1_mask)
-            image_2 = to_tensor(image=image_2_img, mask=image_2_mask)
-
-            image_1_img = image_1["image"]
-            image_1_mask = image_1["mask"]
-            image_2_img = image_2["image"]
-            image_2_mask = image_2["mask"]
+            image_1_img, image_1_mask = self.apply_transform(
+                to_tensor, image_1_img, image_1_mask
+            )
+            image_2_img, image_2_mask = self.apply_transform(
+                to_tensor, image_2_img, image_2_mask
+            )
 
             if (
                 image_1_img.dtype != torch.float32
@@ -146,3 +152,11 @@ class ColorAugDataset(Dataset):
 
     def __len__(self):
         return len(self.dataset)
+
+    ## helper methods below
+    def apply_transform(self, transform, img, mask):
+        blob = transform(**dict(image=img, mask=mask))
+        img = blob["image"]
+        mask = blob["mask"]
+
+        return img, mask

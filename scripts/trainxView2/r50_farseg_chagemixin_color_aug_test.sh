@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-#SBATCH --job-name inpaint_0.01
-#SBATCH --output=inpainting_%j.txt
+#SBATCH --job-name ColorAugTest
+#SBATCH --output=random_crop_color_%j.txt
 #SBATCH --ntasks=1
-#SBATCH --time=24:00:00
+#SBATCH --time=36:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --mincpus=8
 
@@ -53,11 +53,11 @@ for path in "${!dirs[@]}"; do
 done
 
 # Run your specific script
-config_path='trainxView2.r50_farseg_changemixin_inpainting'
-model_dir='./log/changestar_sisup/r50_trainxView2_inpainting_partial_data'
+config_path='trainxView2.r50_farseg_changemixin_random_crop'
+model_dir='./log/changestar_sisup/color_aug_test'
 
 export LOCAL_RANK=0
 
-torchrun --nproc_per_node=${NUM_GPUS} --master_port=29510 ./train_changemixin.py \
+torchrun --nproc_per_node=${NUM_GPUS} ./train_changemixin.py \
   --config_path=${config_path} \
   --model_dir=${model_dir}

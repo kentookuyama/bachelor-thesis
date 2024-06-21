@@ -1,12 +1,16 @@
 import cv2
 import ever as er
 from albumentations import (
+    Blur,
+    ChannelShuffle,
     Compose,
     HorizontalFlip,
+    MedianBlur,
     Normalize,
     OneOf,
+    RandomBrightnessContrast,
     RandomRotate90,
-    Resize,
+    ShiftScaleRotate,
     VerticalFlip,
 )
 
@@ -33,7 +37,8 @@ data = dict(
                         p=0.5,
                     ),
                     er.preprocess.albu.RandomDiscreteScale(
-                        [0.75, 1.25, 1.5], p=0.5, always_apply=True
+                        [0.75, 1.0, 1.25],
+                        always_apply=True,
                     ),
                 ]
             ),

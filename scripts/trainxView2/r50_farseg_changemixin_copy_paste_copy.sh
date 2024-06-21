@@ -54,7 +54,7 @@ done
 
 # Run your specific script
 config_path='trainxView2.r50_farseg_changemixin_copy_paste'
-model_dir='./log/changestar_sisup/r50_trainxView2_copy_paste_FDA_CHANGE'
+model_dir='./log/changestar_sisup/r50_trainxView2_copy_paste_FDA_CHANGE_partial_data'
 
 export LOCAL_RANK=0
 

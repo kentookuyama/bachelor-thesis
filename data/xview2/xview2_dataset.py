@@ -9,7 +9,6 @@ from albumentations import (
     Compose,
     CropNonEmptyMaskIfExists,
     HorizontalFlip,
-    RandomCrop,
     RandomRotate90,
 )
 from PIL import Image
@@ -59,12 +58,13 @@ class PreCachedXview2Building(Dataset):
 
     def apply_transforms(self, image, mask):
         """Applies the transforms to the image and mask"""
-        image = (
-            image.astype(np.float32) / 255.0
-        )  # Convert to float32 here for albumentations
-        mask = mask
+        # TODO REMOVED FOR TESTING RANDOM CROP
+        # image = (
+        #     image.astype(np.float32) / 255.0
+        # )
+        # mask = mask
 
-        self.check_data(image)
+        # self.check_data(image)
 
         augmented = self.transforms(**dict(image=image, mask=mask))
         mask = augmented["mask"]
@@ -148,47 +148,73 @@ class PreCachedXview2Building(Dataset):
                 img, mask, mid_w, mid_h, selected_strategy
             )
 
-            base_corner, base_mask = self.apply_transformations(
-                base_corner,
-                base_mask,
-                [CropNonEmptyMaskIfExists(512, 512, always_apply=True)],
-            )
-            helper_corner, helper_mask = self.apply_transformations(
-                helper_corner,
-                helper_mask,
-                [CropNonEmptyMaskIfExists(512, 512, always_apply=True)],
-            )
+            if (h, w) != (1024, 1024):
+                base_corner, base_mask = self.apply_transformations(
+                    base_corner,
+                    base_mask,
+                    [CropNonEmptyMaskIfExists(512, 512, always_apply=True)],
+                )
+                helper_corner, helper_mask = self.apply_transformations(
+                    helper_corner,
+                    helper_mask,
+                    [CropNonEmptyMaskIfExists(512, 512, always_apply=True)],
+                )
+        # if selected_strategy == "random_crop":
+        #     base_corner = (
+        #         cv2.normalize(
+        #             base_corner,
+        #             None,
+        #             np.round(base_corner.max()),
+        #             np.round(base_corner.min()),
+        #             cv2.NORM_MINMAX,
+        #             cv2.CV_8U,
+        #         )
+        #         if base_corner.dtype != np.uint8
+        #         else base_corner
+        #     )
+        #     helper_corner = (
+        #         cv2.normalize(
+        #             helper_corner,
+        #             None,
+        #             np.round(helper_corner.max()),
+        #             np.round(helper_corner.min()),
+        #             cv2.NORM_MINMAX,
+        #             cv2.CV_8U,
+        #         )
+        #         if helper_corner.dtype != np.uint8
+        #         else helper_corner
+        #     )
 
         # Apply selected strategy method
         base_corner, base_mask, helper_corner, helper_mask = strategy_method(
             base_corner, base_mask, helper_corner, helper_mask
         )
 
-        # Convert back to uint8
-        base_corner = (
-            cv2.normalize(
-                base_corner,
-                None,
-                np.round(base_corner.max() * 255),
-                np.round(base_corner.min() * 255),
-                cv2.NORM_MINMAX,
-                cv2.CV_8U,
-            )
-            if base_corner.dtype != np.uint8
-            else base_corner
-        )
-        helper_corner = (
-            cv2.normalize(
-                helper_corner,
-                None,
-                np.round(helper_corner.max() * 255),
-                np.round(helper_corner.min() * 255),
-                cv2.NORM_MINMAX,
-                cv2.CV_8U,
-            )
-            if helper_corner.dtype != np.uint8
-            else helper_corner
-        )
+        # # Convert back to uint8
+        # base_corner = (
+        #     cv2.normalize(
+        #         base_corner,
+        #         None,
+        #         np.round(base_corner.max() * 255),
+        #         np.round(base_corner.min() * 255),
+        #         cv2.NORM_MINMAX,
+        #         cv2.CV_8U,
+        #     )
+        #     if base_corner.dtype != np.uint8
+        #     else base_corner
+        # )
+        # helper_corner = (
+        #     cv2.normalize(
+        #         helper_corner,
+        #         None,
+        #         np.round(helper_corner.max() * 255),
+        #         np.round(helper_corner.min() * 255),
+        #         cv2.NORM_MINMAX,
+        #         cv2.CV_8U,
+        #     )
+        #     if helper_corner.dtype != np.uint8
+        #     else helper_corner
+        # )
 
         self.check_data(base_corner)
         self.check_data(helper_corner)
@@ -237,21 +263,20 @@ class PreCachedXview2Building(Dataset):
         non_empty_corner = [
             key for key, (_, mask) in corners.items() if np.sum(mask) > 0
         ]
+        all_keys = list(corners.keys())
 
         if non_empty_corner:
             base_corner_key = random.choice(non_empty_corner)
+            non_empty_corner.remove(base_corner_key)
         else:
-            base_corner_key = random.choice(list(corners.keys()))
+            base_corner_key = random.choice(all_keys)
 
-        corners = {
-            key: value for key, value in corners.items() if key != base_corner_key
-        }
-        non_empty_corner = [key for key in non_empty_corner if key != base_corner_key]
+        all_keys.remove(base_corner_key)
 
         if non_empty_corner:
             helper_corner_key = random.choice(non_empty_corner)
         else:
-            helper_corner_key = random.choice(list(corners.keys()))
+            helper_corner_key = random.choice(all_keys)
 
         return base_corner_key, helper_corner_key
 
@@ -282,9 +307,10 @@ class PreCachedXview2Building(Dataset):
 
     ##### Strategy 1: Random Crop
     def random_crop(self, base_corner, base_mask, helper_corner, helper_mask):
-        random_rotate = RandomRotate90(True)
-        rotated_image = random_rotate(image=helper_corner, mask=helper_mask)
-        return base_corner, base_mask, rotated_image["image"], rotated_image["mask"]
+        helper_corner, helper_mask = self.apply_transformations(
+            helper_corner, helper_mask, [RandomRotate90(True)]
+        )
+        return base_corner, base_mask, helper_corner, helper_mask
 
     ##### Strategy 2: Inpainting
     def semantic_label_inpainting_pair(
@@ -327,11 +353,9 @@ class PreCachedXview2Building(Dataset):
         for index in selected_object_indices:
             inpaint_mask[labels == index + 1] = 1
 
-        blob = (base_corner * 255).round().astype(np.uint8)
-
         # Inpainting using OpenCV's inpaint method from TELEA
         inpainted_corner = cv2.inpaint(
-            blob,
+            base_corner,
             inpaint_mask,
             inpaintRadius=25,
             flags=cv2.INPAINT_TELEA,
@@ -364,7 +388,6 @@ class PreCachedXview2Building(Dataset):
         helper_eligible_objects, helper_labels = self.eligible_image(helper_mask)
 
         if not helper_eligible_objects:
-            print("here")
             self.skipped_amount += 1
             if self.skipped_amount % 200 == 0:
                 print(f"Skipped {self.skipped_amount} times.")
@@ -410,7 +433,15 @@ class PreCachedXview2Building(Dataset):
         src_in_tar = FDA_source_to_target_np(
             source_image, target_image, inpaint_mask, L=L
         )
-        # Output float64
+
+        src_in_tar = cv2.normalize(
+            src_in_tar,
+            None,
+            np.round(src_in_tar.max()),
+            np.round(src_in_tar.min()),
+            cv2.NORM_MINMAX,
+            cv2.CV_8U,
+        )
 
         # Transpose back to (H, W, C) format
         src_in_tar = src_in_tar.transpose((1, 2, 0))
