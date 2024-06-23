@@ -58,38 +58,9 @@ class PreCachedXview2Building(Dataset):
 
     def apply_transforms(self, image, mask):
         """Applies the transforms to the image and mask"""
-        # TODO REMOVED FOR TESTING RANDOM CROP
-        # image = (
-        #     image.astype(np.float32) / 255.0
-        # )
-        # mask = mask
-
-        # self.check_data(image)
-
         augmented = self.transforms(**dict(image=image, mask=mask))
         mask = augmented["mask"]
         image = augmented["image"]
-
-        # scale_factor = np.random.choice([0.75, 1.25, 1.5])
-        # image = cv2.resize(
-        #     image,
-        #     None,
-        #     fx=scale_factor,
-        #     fy=scale_factor,
-        #     interpolation=cv2.INTER_NEAREST,
-        # )
-        # mask = cv2.resize(
-        #     mask,
-        #     None,
-        #     fx=scale_factor,
-        #     fy=scale_factor,
-        #     interpolation=cv2.INTER_NEAREST,
-        # )
-
-        # self.check_data(
-        #     image, np.float32, (1024 * scale_factor, 1024 * scale_factor, 3)
-        # )
-        # self.check_data(mask, np.float32, (1024 * scale_factor, 1024 * scale_factor))
 
         return image, mask
 

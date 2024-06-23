@@ -1,5 +1,6 @@
 import ever as er
 import torch.nn as nn
+
 from core.mixin import ChangeMixin
 from module.segmentation import Segmentation
 

@@ -11,9 +11,10 @@ from albumentations import (
     RandomRotate90,
     VerticalFlip,
 )
+from torch.utils.data import ConcatDataset, SequentialSampler
+
 from core.dataset import ColorAugDataset
 from data.xview2.xview2_dataset import PreCachedXview2Building
-from torch.utils.data import ConcatDataset, SequentialSampler
 
 
 def seed_worker(worker_id):
@@ -31,6 +32,7 @@ class PreCachedXview2BuildingLoader(er.ERDataLoader):
     def dataloader_params(self):
         strategies = getattr(self.config, "strategies", None)
         print("strategies", strategies)
+        print(self.config)
         if self.config.training:
             if self.config.selfpair:
                 transform = self.config.geo_transforms

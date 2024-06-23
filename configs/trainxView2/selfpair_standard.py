@@ -42,7 +42,34 @@ data = dict(
                     ),
                 ]
             ),
-            color_transforms=None,
+            color_transforms=Compose(
+                [
+                    OneOf(
+                        [
+                            ShiftScaleRotate(
+                                shift_limit=0.0625,
+                                scale_limit=0.0,
+                                rotate_limit=0,
+                                interpolation=1,
+                                p=0.5,
+                            ),
+                            RandomBrightnessContrast(
+                                brightness_limit=[0.1, 0.3],
+                                contrast_limit=[0.1, 0.3],
+                                p=0.2,
+                            ),
+                            ChannelShuffle(p=0.1),
+                            OneOf(
+                                [
+                                    Blur(blur_limit=3, p=1.0),
+                                    MedianBlur(blur_limit=3, p=1.0),
+                                ],
+                                p=0.1,
+                            ),
+                        ]
+                    )
+                ]
+            ),
             common_transforms=Compose(
                 [
                     Normalize(
